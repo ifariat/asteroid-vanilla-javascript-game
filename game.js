@@ -9,13 +9,14 @@ const CTX = document.querySelector('#game').getContext('2d'),
     PI = Math.PI,
     PI2 = PI * 2,
     FPS = 60;
+    let logger = document.querySelector('#logger');
 let ship,
     particleList = [],
     bulletList = [],
     asteroidList = [],
     explosionList = [],
     starsList = [],
-    DamagePlumList = [],
+    damagePlumList = [],
     score = 0,
     gameOver = false,
     loopId;
@@ -26,8 +27,8 @@ function degToRad(deg) {
 const randColor = () => {
     return `hsl(${~~(Math.random() * 360)},100%,50%)`
 };
-function precise(num,precision = 4) {
-    return +(num.toString().toPrecision(precision));
+function precise(num,precision) {
+    return +(num).toFixed(precision);
 }
 function random(min, max) {
     return min + Math.random() * (max - min);
@@ -50,7 +51,7 @@ class Star {
         this.size = size;
         this.maxspeed = 2;
         this.alpha = 1 ;
-        this.color = 'hsl(193, 100%,100%)';;
+        this.color = `hsl(0, 30%,${size*10}%)`;
     }
     draw() {
         let {
@@ -59,11 +60,9 @@ class Star {
         } = this.pos;
         let r = this.size;
         CTX.shadowColor = CTX.fillStyle = this.color;
-        // CTX.shadowBlur = 5;
         CTX.beginPath();
         CTX.fillRect(x, y, r, r)
         CTX.fill();
-        CTX.shadowBlur = 0;
     }
     applyForce(f) {
         this.acceleration.add(f.normalise().mult(this.maxspeed));
@@ -88,29 +87,29 @@ class Star {
     }
 };
 class DamagePlum {
-    constructor(pos, color) {
+    constructor(pos) {
         this.pos = pos;
-        this.acceleration = new Vec(0,-0.5);
+        this.acceleration = new Vec(0,-1);
         this.friction = new Vec(0,0.99);
         this.velocity = new Vec(0, 0);
         this.alpha = 1;
         this.size = 20;
-        this.color = 'rgba(255,255,255,';
+        this.color = 'hsl(0, 0%, 100%)';
     }
     draw() {
         let {
             x,
             y
         } = this.pos;
-        CTX.shadowColor = CTX.fillStyle = `${this.color}${this.alpha})`; 
+        CTX.shadowColor = CTX.fillStyle = this.color; 
         CTX.textAlign = 'center';
         CTX.font = `${this.size}px meter`;
         CTX.fillText('+20',x,y)
         CTX.shadowBlur = 0;
     }
     update() {
-        if (this.size - .5 > 0) {
-            this.size -= .5;
+        if (this.size - 0.05 > 0) {
+            this.size -= 0.5;
         }
         this.velocity.add(this.acceleration);
         this.pos.add(this.velocity);
@@ -119,7 +118,7 @@ class DamagePlum {
     }
 }
 class Explosion {
-    constructor(pos, acc, color) {
+    constructor(pos, acc, color, nature) {
         this.pos = pos;
         this.velocity = new Vec(0, 0);
         this.acceleration = acc;
@@ -127,6 +126,7 @@ class Explosion {
         this.isStroke = random(0,1) < 0.5;
         this.rad = random(1, 5);
         this.maxspeed = 0.01;
+        this.nature = nature;
         this.hue = 40;
         this.color = color || ',50%,50%)';
     }
@@ -136,12 +136,14 @@ class Explosion {
             y
         } = this.pos;
         CTX.globalCompositeOperation = "lighter";
-        CTX.shadowColor = CTX.fillStyle = `hsl(${this.hue}${this.color}`; 
-        CTX.shadowBlur = 20;
+        if(this.nature === 'self') {
+            CTX.shadowColor = CTX.fillStyle = this.color; 
+        } else {
+            CTX.shadowColor = CTX.fillStyle = `hsl(${this.hue}${this.color}`; 
+        }
         CTX.beginPath();
         CTX.arc(x, y, this.rad, 0, PI2)
         CTX.fill();
-        CTX.shadowBlur = 0;
         CTX.globalCompositeOperation = "source-over";
     }
     applyForce(f) {
@@ -149,7 +151,7 @@ class Explosion {
     }
     update() {
         this.hue -= 2 ;
-        if (this.rad - 0.05 > 0) {
+        if (this.rad - 0.05 >= 0) {
             this.rad -= 0.05;
         }
         this.applyForce(this.acceleration);
@@ -167,13 +169,14 @@ function collisionManager() {
         for (let i = 0; i < as.length; i++) {
             let a = as[i];
             let s = ship;
-            let radsAsteroidShip = a.rad + ship.scale;
-            if(distance(s.centroid().add(s.pos), a.pos) < radsAsteroidShip) {
+            let asteroidShipRads = a.rad + ship.scale;
+            if(distance(s.centroid().add(s.pos), a.pos) < asteroidShipRads) {
                 // cancelAnimationFrame(loopId);
                 if(!gameOver) {
                     create({
                         type: 'explosion',
-                        color: 'rgba(255, 255, 255,',
+                        color: 'hsl(0, 100%, 99%)',
+                        nature:  'self',
                         pos:s.centroid().add(s.pos)
                     });
                 }
@@ -182,20 +185,18 @@ function collisionManager() {
             if(bu.length > 0) {
                 for (let j = 0; j < bu.length; j++) {
                     let b = bu[j];
-                    let radsAsteroidBullet = a.rad + b.rad;
+                    let asteroidBulletRads = a.rad + b.rad;
     
-                    if (distance(a.pos, b.pos) < radsAsteroidBullet) {
+                    if (distance(a.pos, b.pos) < asteroidBulletRads) {
                         bulletList.splice(j, 1);
                         a.health -= 1;
-                        a.lightness += 2;
+                        a.lightness += 3.5;
                         if (a.health <= 0) {
                             score += 10;
-                            let aCopy = Object.assign({}, a);
-                            let {
-                                pos
-                            } = aCopy;
+                            let pos = {...a.pos}
                             create({
                                 type: 'explosion',
+                                nature:'outer',
                                 pos
                             });
                             create({
@@ -230,7 +231,7 @@ class Asteroid {
         this.rad = rad || 40;
         this.maxspeed = 1;
         this.lightness = 53;
-        this.color = 'hsl(13, 100%,';
+        this.color = 'hsl(16, 100%,';
     }
     border() {
         if (this.pos.x - this.rad > W) {
@@ -247,7 +248,6 @@ class Asteroid {
     spawn() {
         let x, y, randDir;
         if (this.rad === 40) {
-            console.log('running')
             if (random(-1, 1) > 0) {
                 x = -this.rad;
                 y = random(-this.rad * 2, H);
@@ -307,7 +307,7 @@ class Bullet {
         let ny = Math.sin(this.angle) * l + y;
         CTX.imageSmoothingEnabled = true;
         CTX.strokeStyle = `hsl(${this.hue},${this.color}`;
-        CTX.lineWidth = 3.5;
+        CTX.lineWidth = 3.9;
         CTX.lineCap = 'round';
         CTX.beginPath();
         CTX.moveTo(x, y);
@@ -389,8 +389,8 @@ class Ship {
     }
     update() {
         if(gameOver) return;
-        let x = +(Math.cos(this.angle)).toPrecision(2);
-        let y = +(Math.sin(this.angle)).toPrecision(2);
+        let x = precise(Math.cos(this.angle),2);
+        let y = precise(Math.sin(this.angle),2);
 
         if (Input.up) {
             this.applyForce(new Vec(-x, -y));
@@ -495,7 +495,7 @@ function loop(timestamp) {
         d.update();
         d.draw()
     }
-    for (let d of DamagePlumList) {
+    for (let d of damagePlumList) {
         d.update();
         d.draw()
     }
@@ -506,6 +506,7 @@ function loop(timestamp) {
     garbageCollector();
     scoreManager()
     Meter.run(timestamp);
+    log();
 }
 
 
@@ -518,13 +519,14 @@ function init() {
     Input.listen();
     loop();
     for (let i = 0; i < 15; i++) {
-        let x = random(-100, W+100);
-        let y = random(-100, H+100);
+        let offset = 20;
+        let x = random(-offset, W+offset);
+        let y = random(-offset, H+offset);
         let pos = new Vec(x, y);
-        let size = random(1,5);
+        let size = random(2,5);
         starsList.push(new Star(pos, size));
     }
-    Meter.init('d');
+    // Meter.init('d');
 }
 
 function garbageCollector() {
@@ -542,8 +544,14 @@ function garbageCollector() {
     }
     for (let i = 0; i < explosionList.length; i++) {
         let e = explosionList[i];
-        if (e.alpha <= 0) {
+        if (e.rad <= 0.1) {
             explosionList.splice(i, 1);
+        }
+    }
+    for (let i = 0; i < damagePlumList.length; i++) {
+        let e = damagePlumList[i];
+        if (e.size <= 0) {
+            damagePlumList.splice(i, 1);
         }
     }
 }
@@ -578,8 +586,10 @@ function create(args) {
         qty,
         pos,
         rad,
-        color
+        color,
+        nature
     } = args;
+    console.log(type)
     switch (type) {
         case 'asteroid':
             for (let i = 0; i < qty; i++) {
@@ -589,7 +599,7 @@ function create(args) {
                 let y = Math.sin(randAngle);                
                 let a;
                 if (rad) {
-                    a = new Asteroid(pos.add(randOff), rad, new Vec(x,y));
+                    a = new Asteroid(new Vec(pos.x,pos.y).add(randOff), rad, new Vec(x,y));
                 } else {
                     a = new Asteroid();
                 }
@@ -644,13 +654,25 @@ function create(args) {
                 let ax = random(-4, 4);
                 let ay = random(-4, 4);
                 if(color) {
-                    explosionList.push(new Explosion(new Vec(x, y), new Vec(ax, ay), color));
+                    explosionList.push(new Explosion(new Vec(x, y), new Vec(ax, ay), color,nature));
                 } else {
-                    explosionList.push(new Explosion(new Vec(x, y), new Vec(ax, ay), null));
+                    explosionList.push(new Explosion(new Vec(x, y), new Vec(ax, ay), null,nature));
                 }
             }
             case 'plum':
-                DamagePlumList.push(new DamagePlum(pos, 'cyan'))
+                let {x,y} = pos;
+                damagePlumList.push(new DamagePlum(new Vec(x,y), 'cyan'))
             break;
     }
+}
+let count= 0;
+function log() {
+    let msg = `ParticleList Length ${particleList.length}
+    ExplosionList Length ${explosionList.length}
+    StarsList Length ${starsList.length}
+    AsteroidList Length ${asteroidList.length}
+    damagePlumList Length ${damagePlumList.length}
+    BulletList Length ${bulletList.length}
+    `
+    logger.innerText = msg;
 }

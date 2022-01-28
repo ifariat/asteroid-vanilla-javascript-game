@@ -1,0 +1,15 @@
+@font-face {
+    font-family: meter;
+    src: url(./font.ttf);
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    background: linear-gradient(rgb(99, 2, 66), #23034d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}

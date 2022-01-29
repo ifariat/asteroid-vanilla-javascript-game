@@ -3,20 +3,100 @@
     src: url(./font.ttf);
 }
 
+@font-face {
+    font-family: "game";
+    src: url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&display=swap");
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
 body {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
     background: linear-gradient(rgb(99, 2, 66), #23034d);
     display: flex;
+    flex-flow: column wrap;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    font-family: 'Staatliches', cursive;
 }
 
 #logger {
     color: white;
     position: absolute;
     bottom: 0;
-    font-family: Arial, Helvetica, sans-serif;
+}
+
+.gui {
+    width: 600px;
+    height: 40px;
+    /* border: 1px solid red; */
+    display: flex;
+    margin-bottom: 10px;
+    flex-flow: row wrap;
+}
+
+.gui div {
+    /* border: 1px solid blue; */
+    height: 100%;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-family: meter;
+    letter-spacing: 2px;
+    font-size: 20px;
+}
+
+.health {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.health svg:nth-child(2) {
+    margin: 0 4px;
+}
+
+.health svg {
+    fill: #0ed1e0;
+    width: 16px;
+}
+
+#gui_left svg {
+    width: 20px;
+    fill: #0ed1e0;
+}
+
+#author {
+    font-family: "Poppins", sans-serif;
+    width: 100%;
+    bottom: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: inherit;
+    text-transform: uppercase;
+    padding-left: 35px;
+    color: rgb(73, 47, 102);
+    margin-top: 30px;
+}
+
+#author span {
+    font-size: 10px;
+    margin-left: 20px;
+    color: inherit;
+    letter-spacing: 4px;
+}
+
+#author h1 {
+    font-size: 25px;
 }

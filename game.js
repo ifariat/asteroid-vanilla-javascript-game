@@ -4,12 +4,11 @@ import Input from './Input.js';
 import Meter from './Meter.js';
 
 const CTX = document.querySelector('#game').getContext('2d'),
-    W = CTX.canvas.width = 650 || innerWidth,
-    H = CTX.canvas.height = 650 || innerHeight,
+    W = CTX.canvas.width = 600 || innerWidth,
+    H = CTX.canvas.height = 600 || innerHeight,
     PI = Math.PI,
     PI2 = PI * 2,
     FPS = 60;
-    let logger = document.querySelector('#logger');
 let ship,
     particleList = [],
     bulletList = [],
@@ -19,10 +18,17 @@ let ship,
     damagePlumList = [],
     score = 0,
     gameOver = false,
-    loopId;
+    loopId,
+    logger = document.querySelector('#logger'),
+    angleDom = document.querySelector('#gui_left svg'),
+    scoreDom = document.querySelector('#gui_center');
+
 
 function degToRad(deg) {
     return deg * (PI / 180);
+}
+function radToDeg(rad) {
+    return rad * (180 / PI);
 }
 const randColor = () => {
     return `hsl(${~~(Math.random() * 360)},100%,50%)`
@@ -33,7 +39,6 @@ function precise(num,precision) {
 function random(min, max) {
     return min + Math.random() * (max - min);
 }
-
 function lerp(v0, v1, t) {
     return v0 * (1 - t) + v1 * t
 }
@@ -43,7 +48,9 @@ function distance(a, b) {
         distY = b.y - a.y;
     return Math.sqrt((distX * distX + distY * distY));
 }
-
+function scale (number, inMin, inMax, outMin, outMax) {
+    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
 class Star {
     constructor(pos,size) {
         this.pos = pos;
@@ -51,7 +58,7 @@ class Star {
         this.size = size;
         this.maxspeed = 2;
         this.alpha = 1 ;
-        this.color = `hsl(0, 30%,${size*10}%)`;
+        this.color = `rgba(255,255,255,${scale(size, 2,8,0,0.5)})`;
     }
     draw() {
         let {
@@ -60,9 +67,11 @@ class Star {
         } = this.pos;
         let r = this.size;
         CTX.shadowColor = CTX.fillStyle = this.color;
+        CTX.shadowBlur = 20;
         CTX.beginPath();
-        CTX.fillRect(x, y, r, r)
+        CTX.fillRect(x, y, r, r);
         CTX.fill();
+        CTX.shadowBlur = 0;
     }
     applyForce(f) {
         this.acceleration.add(f.normalise().mult(this.maxspeed));
@@ -87,30 +96,33 @@ class Star {
     }
 };
 class DamagePlum {
-    constructor(pos) {
+    constructor(pos,dmg) {
         this.pos = pos;
+        this.dmg = dmg;
         this.acceleration = new Vec(0,-1);
         this.friction = new Vec(0,0.99);
         this.velocity = new Vec(0, 0);
         this.alpha = 1;
         this.size = 20;
-        this.color = 'hsl(0, 0%, 100%)';
+        this.color = 'rgba(255,255,255,';
     }
     draw() {
         let {
             x,
             y
         } = this.pos;
-        CTX.shadowColor = CTX.fillStyle = this.color; 
+        CTX.shadowColor = CTX.fillStyle = `${this.color}${this.alpha})`; 
         CTX.textAlign = 'center';
         CTX.font = `${this.size}px meter`;
-        CTX.fillText('+20',x,y)
+        CTX.fillText(`+${this.dmg}`,x,y)
         CTX.shadowBlur = 0;
     }
     update() {
-        if (this.size - 0.05 > 0) {
-            this.size -= 0.5;
+        if (this.size - 0.4 > 0) {
+            this.size -= 0.4;
         }
+        this.alpha -= 0.03;
+        this.text
         this.velocity.add(this.acceleration);
         this.pos.add(this.velocity);
         this.velocity.mult(this.friction);
@@ -128,7 +140,7 @@ class Explosion {
         this.maxspeed = 0.01;
         this.nature = nature;
         this.hue = 40;
-        this.color = color || ',50%,50%)';
+        this.color = color || ',70%,50%)';
     }
     draw() {
         let {
@@ -141,10 +153,12 @@ class Explosion {
         } else {
             CTX.shadowColor = CTX.fillStyle = `hsl(${this.hue}${this.color}`; 
         }
+        CTX.shadowBlur = 20;
         CTX.beginPath();
         CTX.arc(x, y, this.rad, 0, PI2)
         CTX.fill();
         CTX.globalCompositeOperation = "source-over";
+        CTX.shadowBlur = 0;
     }
     applyForce(f) {
         this.acceleration.add(f.normalise().mult(this.maxspeed));
@@ -201,7 +215,8 @@ function collisionManager() {
                             });
                             create({
                                 type: 'plum',
-                                pos
+                                pos,
+                                dmg: a.rad === 40 ? 20 : 10
                             })
                             if (a.rad === 40) {
                                 create({
@@ -231,7 +246,7 @@ class Asteroid {
         this.rad = rad || 40;
         this.maxspeed = 1;
         this.lightness = 53;
-        this.color = 'hsl(16, 100%,';
+        this.color = 'hsl(15, 100%,';
     }
     border() {
         if (this.pos.x - this.rad > W) {
@@ -271,8 +286,8 @@ class Asteroid {
             y
         } = this.pos;
         CTX.shadowColor = CTX.strokeStyle = `${this.color}${this.lightness}%)`;
-        CTX.shadowBlur = 12;
-        CTX.lineWidth = 2;
+        CTX.shadowBlur = 8;
+        CTX.lineWidth = 2.5;
         CTX.beginPath();
         CTX.arc(x, y, this.rad, 0, PI2)
         CTX.closePath();
@@ -294,7 +309,7 @@ class Bullet {
         this.rad = 5;
         this.age = 100;
         this.bulletLength = 2;
-        this.color = '100%, 50%)';
+        this.color = '100%, 60%)';
         this.hue = 170;
     }
     draw() {
@@ -308,11 +323,14 @@ class Bullet {
         CTX.imageSmoothingEnabled = true;
         CTX.strokeStyle = `hsl(${this.hue},${this.color}`;
         CTX.lineWidth = 3.9;
+        CTX.shadowColor = `hsl(${this.hue},${this.color}`;
+        CTX.shadowBlur = 10;        
         CTX.lineCap = 'round';
         CTX.beginPath();
         CTX.moveTo(x, y);
         CTX.lineTo(nx, ny);
         CTX.stroke();
+        CTX.shadowBlur = 0;
     }
     applyForce(f) {
         this.acceleration = f.normalise().mult(this.maxspeed);
@@ -418,7 +436,7 @@ class Ship {
                     type: 'bullet',
                     qty: 1
                 });
-                this.delay = 3;
+                this.delay = 2;
             }
         }
         this.velocity.limit(4)
@@ -436,10 +454,10 @@ class ThrustParticle {
         this.acceleration = acc;
         this.rad = rad;
         this.angle = ship.angle;
-        this.friction = random(0.3, 0.9);
-        this.maxspeed = random(0.5, 1);
+        this.friction = random(0.7, 0.9);
+        this.maxspeed = random(0.2, 0.2);
         this.alpha = 1;
-        this.age = 20;
+        this.age = 50;
         this.color = 'rgba(217, 68, 38,';
     }
     draw() {
@@ -457,13 +475,13 @@ class ThrustParticle {
     }
     update() {
         this.age -= 1;
-        if (this.rad - 0.3 > 0.1) {
-            this.rad -= 0.3;
+        if (this.rad - 0.2 > 0.1) {
+            this.rad -= 0.2;
         }
-        if (this.alpha - 0.01 > 0.1) {
-            this.alpha -= 0.01;
-        }
-        this.velocity.add(this.acceleration);
+        // if (this.alpha - 0.01 > 0.1) {
+        //     this.alpha -= 0.01;
+        // }
+        this.velocity.add(this.acceleration.normalise().mult(this.maxspeed));
         this.pos.add(this.velocity);
         this.velocity.mult(this.friction);
     }
@@ -472,8 +490,11 @@ class ThrustParticle {
 
 function loop(timestamp) {
     CTX.clearRect(0, 0, W, H)
-    loopId = requestAnimationFrame(loop);
     collisionManager();
+    for (let d of starsList) {
+        d.update();
+        d.draw()
+    }
     for (let a of asteroidList) {
         a.draw();
         a.update();
@@ -491,10 +512,6 @@ function loop(timestamp) {
         e.draw()
         e.update();
     }
-    for (let d of starsList) {
-        d.update();
-        d.draw()
-    }
     for (let d of damagePlumList) {
         d.update();
         d.draw()
@@ -505,10 +522,10 @@ function loop(timestamp) {
     crtEffect();
     garbageCollector();
     scoreManager()
-    Meter.run(timestamp);
-    log();
+    // Meter.run(timestamp);
+    // log();
+    gui()
 }
-
 
 function init() {
     ship = new Ship(new Vec(W / 2, H / 2))
@@ -517,15 +534,15 @@ function init() {
         qty: 4
     })
     Input.listen();
-    loop();
     for (let i = 0; i < 15; i++) {
         let offset = 20;
         let x = random(-offset, W+offset);
         let y = random(-offset, H+offset);
         let pos = new Vec(x, y);
-        let size = random(2,5);
+        let size = random(2,8);
         starsList.push(new Star(pos, size));
     }
+    setInterval(loop, 1000/FPS);
     // Meter.init('d');
 }
 
@@ -557,9 +574,7 @@ function garbageCollector() {
 }
 
 function scoreManager() {
-    CTX.fillStyle = 'white';
-    CTX.font = '40px meter';
-    CTX.fillText(score.toString(), W / 2, 50);
+    scoreDom.innerText = String(score).padStart(4, '0');
 }
 
 function crtEffect() {
@@ -587,9 +602,9 @@ function create(args) {
         pos,
         rad,
         color,
-        nature
+        nature,
+        dmg
     } = args;
-    console.log(type)
     switch (type) {
         case 'asteroid':
             for (let i = 0; i < qty; i++) {
@@ -611,7 +626,7 @@ function create(args) {
             {
                 let px = ship.centroid().x + ship.pos.x;
                 let py = ship.centroid().y + ship.pos.y;
-                let s = ship.scale * 4;
+                let s = ship.scale +20;
                 let a = ship.angle.toPrecision(3);
                 let color = randColor();
                 let acos = a => { // cosine of angle
@@ -630,17 +645,17 @@ function create(args) {
             for (let i = 0; i < qty; i++) {
                 let px = ship.centroid().x + ship.pos.x;
                 let py = ship.centroid().y + ship.pos.y;
-                let s = ship.scale * 2;
-                let a = ship.angle.toPrecision(3);
+                let s = ship.scale * 1.1;
+                let a = ship.angle;
                 let acos = a => {
                     return Math.cos(a);
                 }
                 let asin = a => {
                     return Math.sin(a);
                 }
-                let randAcc = new Vec(random(acos(a) - 0.9, acos(a) + 0.9), asin(a));
-                let randX = random(acos(a) * s + px, acos(a) * s + px);
-                let randY = random(asin(a) * s + py, asin(a) * s + py);
+                let randAcc = new Vec(random(acos(a) - 2, acos(a) + 2), asin(a));
+                let randX = random(acos(a) * s + px-4, acos(a) * s + px+4);
+                let randY = random(asin(a) * s + py-4, asin(a) * s + py+4);
                 let r = random(1, 8);
                 particleList.push(new ThrustParticle(new Vec(randX, randY), randAcc, r));
             }
@@ -659,13 +674,13 @@ function create(args) {
                     explosionList.push(new Explosion(new Vec(x, y), new Vec(ax, ay), null,nature));
                 }
             }
+            break;
             case 'plum':
                 let {x,y} = pos;
-                damagePlumList.push(new DamagePlum(new Vec(x,y), 'cyan'))
+                damagePlumList.push(new DamagePlum(new Vec(x,y), dmg))
             break;
     }
 }
-let count= 0;
 function log() {
     let msg = `ParticleList Length ${particleList.length}
     ExplosionList Length ${explosionList.length}
@@ -675,4 +690,9 @@ function log() {
     BulletList Length ${bulletList.length}
     `
     logger.innerText = msg;
+}
+
+function gui() {
+    let style = `rotate(${radToDeg(ship.angle)-90})`;
+    angleDom.setAttribute('transform', style);
 }

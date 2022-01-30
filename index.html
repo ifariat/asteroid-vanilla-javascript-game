@@ -19,23 +19,30 @@
 
 <body>
     <div id="logger"></div>
-    <div class="gui">
-        <div id="gui_left">
-            <svg viewBox="0 0 16.49 16.49"><g><g><path d="M8.25,0a8.25,8.25,0,1,0,8.24,8.25A8.26,8.26,0,0,0,8.25,0Zm0,14.49a6.24,6.24,0,0,1-1-12.4V8.25h2V2.09a6.24,6.24,0,0,1-1,12.4Z"/></g></g></svg>
+    <div class="container">
+        <div class="lobby">
+            <div id="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 301.24 31.49"><defs><style>.cls-1{fill:#fff;}</style></defs><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><polygon class="cls-1" points="0 31.49 36.36 31.49 18.18 0 0 31.49"/><polygon class="cls-1" points="50.99 18.88 76.14 18.88 76.14 25.2 50.99 25.2 50.99 31.49 82.43 31.49 82.43 12.67 57.27 12.67 57.27 6.34 82.43 6.34 82.43 0.05 50.99 0.05 50.99 18.88"/><polygon class="cls-1" points="91.86 6.38 104.43 6.38 104.43 31.49 110.72 31.49 110.72 6.38 123.3 6.38 123.3 0.05 91.86 0.05 91.86 6.38"/><polygon class="cls-1" points="132.73 31.49 164.17 31.49 164.17 25.17 139.01 25.17 139.01 18.92 164.17 18.92 164.17 12.59 139.01 12.59 139.01 6.38 164.17 6.38 164.17 0.05 132.73 0.05 132.73 31.49"/><path class="cls-1" d="M173.6.05V31.49h6.29V18.92h12.57V31.49h6.29V18.92H205V.05H173.6Zm25.15,12.19H179.89V6h18.86Z"/><path class="cls-1" d="M214.47.05V31.49h31.44V.05H214.47Zm25.15,25.12H220.75V6.38h18.87Z"/><rect class="cls-1" x="255.34" y="0.05" width="6.29" height="31.44"/><path class="cls-1" d="M287.13.05H269.8V6.38h3.14V25.17H269.8v6.32h31.44V.05ZM295,25.17H279.23V6.38H295Z"/></g></g></svg></div>
+            <div class="button">Start</div>
         </div>
-        <div id="gui_center">200</div>
-        <div id="gui_right">
-            <div class="health">
-                <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
-                <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
-                <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
+        <div class="gui">
+            <div id="gui_left">
+                <svg viewBox="0 0 16.49 16.49"><g><g><path d="M8.25,0a8.25,8.25,0,1,0,8.24,8.25A8.26,8.26,0,0,0,8.25,0Zm0,14.49a6.24,6.24,0,0,1-1-12.4V8.25h2V2.09a6.24,6.24,0,0,1-1,12.4Z"/></g></g></svg>
+            </div>
+            <div id="gui_center">200</div>
+            <div id="gui_right">
+                <div class="health">
+                    <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
+                    <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
+                    <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
+                </div>
             </div>
         </div>
+        <canvas id="game"></canvas>
+        <div id="author">
+            <h1>ASTEROIDS</h1> <span>by Fariat</span>
+        </div>
     </div>
-    <canvas id="game"></canvas>
-    <div id="author">
-        <h1>ASTEROIDS</h1> <span>by Fariat</span>
-    </div>
+
 </body>
 
 </html>

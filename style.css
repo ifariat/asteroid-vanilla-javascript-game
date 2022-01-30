@@ -12,18 +12,16 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    user-select: none;
 }
 
 body {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
     background: linear-gradient(rgb(99, 2, 66), #23034d);
     display: flex;
     flex-flow: column wrap;
+    height: 100vh;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     font-family: 'Staatliches', cursive;
 }
 
@@ -34,12 +32,15 @@ body {
 }
 
 .gui {
-    width: 600px;
+    position: absolute;
+    width: 100%;
     height: 40px;
     /* border: 1px solid red; */
     display: flex;
     margin-bottom: 10px;
     flex-flow: row wrap;
+    top: -50px;
+    left: 0;
 }
 
 .gui div {
@@ -52,7 +53,7 @@ body {
     color: #fff;
     font-family: meter;
     letter-spacing: 2px;
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .health {
@@ -67,11 +68,11 @@ body {
 
 .health svg {
     fill: #0ed1e0;
-    width: 16px;
+    width: 13px;
 }
 
 #gui_left svg {
-    width: 20px;
+    width: 17px;
     fill: #0ed1e0;
 }
 
@@ -88,6 +89,8 @@ body {
     padding-left: 35px;
     color: rgb(73, 47, 102);
     margin-top: 30px;
+    position: absolute;
+    bottom: -60px;
 }
 
 #author span {
@@ -99,4 +102,72 @@ body {
 
 #author h1 {
     font-size: 25px;
+}
+
+.container {
+    position: relative;
+    width: 600px;
+    height: 600px;
+    display: flex;
+    flex-flow: column wrap;
+}
+
+.lobby {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: row wrap;
+}
+
+.lobby div {
+    /* border: 1px solid rgba(255, 0, 0, 0.164); */
+}
+
+.lobby .button {
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 30%;
+    position: relative;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 0;
+}
+
+.lobby .button:hover {
+    cursor: pointer;
+    color: #430247;
+}
+
+.lobby .button:hover::before {
+    width: 100%;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lobby .button::before {
+    content: "";
+    position: absolute;
+    width: 1%;
+    height: 100%;
+    background: rgb(14, 209, 224);
+    right: 0;
+    z-index: -1;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lobby #logo {
+    width: 70%;
+    padding: 0 54px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
 }

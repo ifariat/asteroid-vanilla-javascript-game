@@ -16,49 +16,88 @@ let ship,
     explosionList = [],
     starsList = [],
     damagePlumList = [],
-    score = 0,
     gameOver = false,
     loopId,
     logger = document.querySelector('#logger'),
     angleDom = document.querySelector('#gui_left svg'),
-    scoreDom = document.querySelector('#gui_center');
+    scoreDom = document.querySelector('#gui_center'),
+    buttonDom = document.querySelector('.button'),
+    lobbyDom = document.querySelector('.lobby'),
+    guiDom = document.querySelector('.gui'),
+    cooldown = false;
+
+let helpers = {
+    degToRad(deg) {
+        return deg * (PI / 180);
+    },
+    radToDeg(rad) {
+        return rad * (180 / PI);
+    },
+    randColor(){
+        return `hsl(${~~(Math.random() * 360)},100%,50%)`
+    },
+    precise(num,precision) {
+        return +(num).toFixed(precision);
+    },
+    random(min, max) {
+        return min + Math.random() * (max - min);
+    },
+    lerp(v0, v1, t) {
+        return v0 * (1 - t) + v1 * t
+    },
+    distance(a, b) {
+        let distX = b.x - a.x,
+            distY = b.y - a.y;
+        return Math.sqrt((distX * distX + distY * distY));
+    },
+    scale(number, inMin, inMax, outMin, outMax) {
+        return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    }
+}
 
 
-function degToRad(deg) {
-    return deg * (PI / 180);
+let state = {
+    maxScore: 0,
+    score: 0
 }
-function radToDeg(rad) {
-    return rad * (180 / PI);
-}
-const randColor = () => {
-    return `hsl(${~~(Math.random() * 360)},100%,50%)`
-};
-function precise(num,precision) {
-    return +(num).toFixed(precision);
-}
-function random(min, max) {
-    return min + Math.random() * (max - min);
-}
-function lerp(v0, v1, t) {
-    return v0 * (1 - t) + v1 * t
-}
+let scene = {
+    current:'start',
+    setCurrent(scene) {
+        this.current = scene;
+    },
+    start() {
+        let randVel = new Vec(0,helpers.random(-1,1));
+        for (let i = 0; i < 15; i++) {
+            let offset = 20;
+            let x = helpers.random(-offset, W+offset);
+            let y = helpers.random(-offset, H+offset);
+            let pos = new Vec(x, y);
+            let size = helpers.random(2,8);
+            starsList.push(new Star(pos, size,randVel));
+        }
+    },
+    game() {
+        ship = new Ship(new Vec(W / 2, H / 2));
+        setTimeout(()=>{
+            create({
+                type: 'asteroid',
+                qty: 4
+            })
+            guiDom.style.display = 'flex';
+            Input.listen();
+        }, 1200)
 
-function distance(a, b) {
-    let distX = b.x - a.x,
-        distY = b.y - a.y;
-    return Math.sqrt((distX * distX + distY * distY));
-}
-function scale (number, inMin, inMax, outMin, outMax) {
-    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+    }
 }
 class Star {
-    constructor(pos,size) {
+    constructor(pos,size, randVel) {
         this.pos = pos;
         this.velocity = new Vec(0, 0);
         this.size = size;
+        this.randVel = randVel;
         this.maxspeed = 2;
         this.alpha = 1 ;
-        this.color = `rgba(255,255,255,${scale(size, 2,8,0,0.5)})`;
+        this.color = `rgba(255,255,255,${helpers.scale(size, 2,8,0,0.5)})`;
     }
     draw() {
         let {
@@ -89,10 +128,10 @@ class Star {
         } else if(y+size<0) {
             this.pos.y = H;
         }
-        let vel = ship.velocity;
+        let vel = scene.current === 'game' ? ship.velocity : this.randVel;
         this.velocity.add(vel.negative().mult(this.size * 0.05));
         this.pos.add(this.velocity);
-        this.velocity.limit(0.05);
+        this.velocity.limit(0.1);
     }
 };
 class DamagePlum {
@@ -135,12 +174,12 @@ class Explosion {
         this.velocity = new Vec(0, 0);
         this.acceleration = acc;
         this.friction = 0.99;
-        this.isStroke = random(0,1) < 0.5;
-        this.rad = random(1, 5);
+        this.isStroke = helpers.random(0,1) < 0.5;
+        this.rad = helpers.random(1, 5);
         this.maxspeed = 0.01;
         this.nature = nature;
         this.hue = 40;
-        this.color = color || ',70%,50%)';
+        this.color = color || ',80%,50%)';
     }
     draw() {
         let {
@@ -164,7 +203,7 @@ class Explosion {
         this.acceleration.add(f.normalise().mult(this.maxspeed));
     }
     update() {
-        this.hue -= 2 ;
+        this.hue -= 1 ;
         if (this.rad - 0.05 >= 0) {
             this.rad -= 0.05;
         }
@@ -184,9 +223,8 @@ function collisionManager() {
             let a = as[i];
             let s = ship;
             let asteroidShipRads = a.rad + ship.scale;
-            if(distance(s.centroid().add(s.pos), a.pos) < asteroidShipRads) {
-                // cancelAnimationFrame(loopId);
-                if(!gameOver) {
+            if(helpers.distance(s.centroid().add(s.pos), a.pos) < asteroidShipRads) {
+                if(!cooldown) {
                     create({
                         type: 'explosion',
                         color: 'hsl(0, 100%, 99%)',
@@ -194,19 +232,28 @@ function collisionManager() {
                         pos:s.centroid().add(s.pos)
                     });
                 }
-                gameOver = true;
+                cooldown = true;
+                asteroidList = [];
+                setTimeout(() =>{
+                    ship.respawn();
+                    create({
+                        type: 'asteroid',
+                        qty: 4
+                    });
+                    cooldown = false;
+                }, 2000)
             }
             if(bu.length > 0) {
                 for (let j = 0; j < bu.length; j++) {
                     let b = bu[j];
                     let asteroidBulletRads = a.rad + b.rad;
     
-                    if (distance(a.pos, b.pos) < asteroidBulletRads) {
+                    if (helpers.distance(a.pos, b.pos) < asteroidBulletRads) {
                         bulletList.splice(j, 1);
                         a.health -= 1;
                         a.lightness += 3.5;
                         if (a.health <= 0) {
-                            score += 10;
+                            state.score += 10;
                             let pos = {...a.pos}
                             create({
                                 type: 'explosion',
@@ -263,16 +310,16 @@ class Asteroid {
     spawn() {
         let x, y, randDir;
         if (this.rad === 40) {
-            if (random(-1, 1) > 0) {
-                x = -this.rad;
-                y = random(-this.rad * 2, H);
+            if (helpers.random(-1, 1) > 0) {
+                x = helpers.random(-1,1)>0? -this.rad : W + this.rad;
+                y = helpers.random(-1,1)>0? -this.rad : H + this.rad;
             } else {
-                x = random(-this.rad * 2, W);
-                y = -this.rad;
+                x = helpers.random(-1,1)>0? -this.rad : W + this.rad;
+                y = helpers.random(-1,1)>0? -this.rad : H + this.rad;
             }
-            randDir = new Vec(random(-1, 1), random(-1, 1));
+            randDir = new Vec(helpers.random(-1, 1), helpers.random(-1, 1));
             let targetDir = Vec.vector('subt', ship.pos, new Vec(x, y)).normalise();
-            this.velocity = random(-1, 1) > 0 ? randDir : targetDir;
+            this.velocity = helpers.random(-1, 1) > 0 ? randDir : targetDir;
             this.pos = new Vec(x, y);
             this.health = 10;
         } else {
@@ -310,7 +357,7 @@ class Bullet {
         this.age = 100;
         this.bulletLength = 2;
         this.color = '100%, 60%)';
-        this.hue = 170;
+        this.hue = 185;
     }
     draw() {
         let l = this.bulletLength;
@@ -355,10 +402,11 @@ class Ship {
             [-1, 2],
             [1, 2]
         ];
-        this.scale = 12;
-        this.angle = degToRad(90);
+        this.scale = 0.1;
+        this.angle = helpers.degToRad(90);
         this.friction = 1;
         this.delay = 2;
+        this.hearth = 3;
         this.maxspeed = 0.09;
         this.centroid = () => {
             let g = this.geometry;
@@ -369,7 +417,7 @@ class Ship {
         this.color = 'rgba(43, 50, 56, 1)';
     }
     draw() {
-        if(gameOver) return;
+        if(cooldown) return;
         let {
             x,
             y
@@ -379,7 +427,7 @@ class Ship {
         CTX.lineWidth = 3;
         CTX.save();
         CTX.translate(x + this.pos.x, y + this.pos.y) // translate canvas to centroid of the triangle.
-        CTX.rotate(this.angle - degToRad(90)); // do the rotation.
+        CTX.rotate(this.angle - helpers.degToRad(90)); // do the rotation.
         CTX.translate(-x - this.pos.x, -y - this.pos.y); // reverse the translation.
         CTX.beginPath();
         CTX.moveTo((g[0][0] * this.scale) + this.pos.x, (g[0][1] * this.scale) + this.pos.y);
@@ -405,10 +453,21 @@ class Ship {
     applyForce(f) {
         this.acceleration = f.normalise().mult(this.maxspeed)
     }
+    respawn() {
+        this.hearth--;
+        this.pos = new Vec(W/2,H/2);
+        this.velocity = new Vec(0, 0);
+        this.acceleration = new Vec(0, 0);
+        this.angle = helpers.degToRad(90);
+        this.scale = 0.1;
+    }
     update() {
-        if(gameOver) return;
-        let x = precise(Math.cos(this.angle),2);
-        let y = precise(Math.sin(this.angle),2);
+        if(cooldown) return;
+        if(this.scale<12) {
+            this.scale = helpers.lerp(this.scale, 12, 0.05);
+        }
+        let x = helpers.precise(Math.cos(this.angle),2);
+        let y = helpers.precise(Math.sin(this.angle),2);
 
         if (Input.up) {
             this.applyForce(new Vec(-x, -y));
@@ -417,18 +476,15 @@ class Ship {
                 qty: 1
             });
         }
-        if (Math.abs(this.angle) >= degToRad(360)) {
+        if (Math.abs(this.angle) >= helpers.degToRad(360)) {
             this.angle = 0;
         }
         if (Input.right) {
-            this.angle += degToRad(4);
+            this.angle += helpers.degToRad(4);
         }
         if (Input.left) {
-            this.angle -= degToRad(4);
+            this.angle -= helpers.degToRad(4);
         }
-        // if (Input.down) {
-        //     this.applyForce(new Vec(x, y));
-        // }
 
         if (Input.space) {
             if (this.delay-- <= 0) {
@@ -454,8 +510,8 @@ class ThrustParticle {
         this.acceleration = acc;
         this.rad = rad;
         this.angle = ship.angle;
-        this.friction = random(0.7, 0.9);
-        this.maxspeed = random(0.2, 0.2);
+        this.friction = helpers.random(0.7, 0.9);
+        this.maxspeed = helpers.random(0.2, 0.2);
         this.alpha = 1;
         this.age = 50;
         this.color = 'rgba(217, 68, 38,';
@@ -478,9 +534,6 @@ class ThrustParticle {
         if (this.rad - 0.2 > 0.1) {
             this.rad -= 0.2;
         }
-        // if (this.alpha - 0.01 > 0.1) {
-        //     this.alpha -= 0.01;
-        // }
         this.velocity.add(this.acceleration.normalise().mult(this.maxspeed));
         this.pos.add(this.velocity);
         this.velocity.mult(this.friction);
@@ -490,7 +543,6 @@ class ThrustParticle {
 
 function loop(timestamp) {
     CTX.clearRect(0, 0, W, H)
-    collisionManager();
     for (let d of starsList) {
         d.update();
         d.draw()
@@ -516,34 +568,23 @@ function loop(timestamp) {
         d.update();
         d.draw()
     }
-    ship.update();
-    ship.border();
-    ship.draw();
+    if(scene.current !== 'start') {
+        collisionManager();
+        ship.update();
+        ship.border();
+        ship.draw();
+    }
     crtEffect();
     garbageCollector();
     scoreManager()
     // Meter.run(timestamp);
     // log();
-    gui()
+    // gui()
 }
 
 function init() {
-    ship = new Ship(new Vec(W / 2, H / 2))
-    create({
-        type: 'asteroid',
-        qty: 4
-    })
-    Input.listen();
-    for (let i = 0; i < 15; i++) {
-        let offset = 20;
-        let x = random(-offset, W+offset);
-        let y = random(-offset, H+offset);
-        let pos = new Vec(x, y);
-        let size = random(2,8);
-        starsList.push(new Star(pos, size));
-    }
+    scene.start();
     setInterval(loop, 1000/FPS);
-    // Meter.init('d');
 }
 
 function garbageCollector() {
@@ -574,7 +615,7 @@ function garbageCollector() {
 }
 
 function scoreManager() {
-    scoreDom.innerText = String(score).padStart(4, '0');
+    scoreDom.innerText = String(state.score).padStart(4, '0');
 }
 
 function crtEffect() {
@@ -592,8 +633,6 @@ function crtEffect() {
 }
 
 
-init();
-
 
 function create(args) {
     let {
@@ -608,8 +647,8 @@ function create(args) {
     switch (type) {
         case 'asteroid':
             for (let i = 0; i < qty; i++) {
-                let randOff = random(-40,40);
-                let randAngle = degToRad(random(0,360));
+                let randOff = helpers.random(-40,40);
+                let randAngle = helpers.degToRad(helpers.random(0,360));
                 let x = Math.cos(randAngle);
                 let y = Math.sin(randAngle);                
                 let a;
@@ -628,7 +667,7 @@ function create(args) {
                 let py = ship.centroid().y + ship.pos.y;
                 let s = ship.scale +20;
                 let a = ship.angle.toPrecision(3);
-                let color = randColor();
+                let color = helpers.randColor();
                 let acos = a => { // cosine of angle
                     return Math.cos(a - PI); // subtracting PI to mirror the shooting angle.
                 }
@@ -653,21 +692,21 @@ function create(args) {
                 let asin = a => {
                     return Math.sin(a);
                 }
-                let randAcc = new Vec(random(acos(a) - 2, acos(a) + 2), asin(a));
-                let randX = random(acos(a) * s + px-4, acos(a) * s + px+4);
-                let randY = random(asin(a) * s + py-4, asin(a) * s + py+4);
-                let r = random(1, 8);
+                let randAcc = new Vec(helpers.random(acos(a) - 2, acos(a) + 2), asin(a));
+                let randX = helpers.random(acos(a) * s + px-4, acos(a) * s + px+4);
+                let randY = helpers.random(asin(a) * s + py-4, asin(a) * s + py+4);
+                let r = helpers.random(1, 8);
                 particleList.push(new ThrustParticle(new Vec(randX, randY), randAcc, r));
             }
             break;
         case 'explosion':
-            for (let i = 0; i < random(20,30); i++) {
+            for (let i = 0; i < helpers.random(20,30); i++) {
                 let {
                     x,
                     y
                 } = pos;
-                let ax = random(-4, 4);
-                let ay = random(-4, 4);
+                let ax = helpers.random(-4, 4);
+                let ay = helpers.random(-4, 4);
                 if(color) {
                     explosionList.push(new Explosion(new Vec(x, y), new Vec(ax, ay), color,nature));
                 } else {
@@ -693,6 +732,17 @@ function log() {
 }
 
 function gui() {
-    let style = `rotate(${radToDeg(ship.angle)-90})`;
+    let style = `rotate(${helpers.radToDeg(ship.angle)-90})`;
     angleDom.setAttribute('transform', style);
 }
+
+buttonDom.addEventListener('click', () => {
+    lobbyDom.style.animation = 'fadeIn 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
+    setTimeout(()=>{ 
+        scene.game();
+        scene.setCurrent('game');
+        lobbyDom.style.display = 'none';
+    },1200)
+})
+init();
+

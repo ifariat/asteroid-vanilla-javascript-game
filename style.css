@@ -8,6 +8,15 @@
     src: url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&display=swap");
 }
 
+@keyframes fadeIn {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
 * {
     padding: 0;
     margin: 0;
@@ -35,16 +44,14 @@ body {
     position: absolute;
     width: 100%;
     height: 40px;
-    /* border: 1px solid red; */
-    display: flex;
     margin-bottom: 10px;
     flex-flow: row wrap;
-    top: -50px;
+    top: 6px;
     left: 0;
+    display: none;
 }
 
 .gui div {
-    /* border: 1px solid blue; */
     height: 100%;
     flex: 1;
     display: flex;
@@ -67,13 +74,13 @@ body {
 }
 
 .health svg {
-    fill: #0ed1e0;
+    fill: rgba(255, 255, 255, 0.808);
     width: 13px;
 }
 
 #gui_left svg {
     width: 17px;
-    fill: #0ed1e0;
+    fill: rgba(255, 255, 255, 0.808);
 }
 
 #author {
@@ -122,10 +129,7 @@ body {
     justify-content: center;
     align-items: center;
     flex-flow: row wrap;
-}
-
-.lobby div {
-    /* border: 1px solid rgba(255, 0, 0, 0.164); */
+    /* transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); */
 }
 
 .lobby .button {
@@ -157,7 +161,7 @@ body {
     position: absolute;
     width: 1%;
     height: 100%;
-    background: rgb(14, 209, 224);
+    background: linear-gradient( 45deg, rgb(224, 14, 119), hsl(15, 100%, 50%));
     right: 0;
     z-index: -1;
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -170,4 +174,16 @@ body {
     justify-content: center;
     align-items: center;
     height: 100px;
+}
+
+.triangle {
+    fill: url(#gradient);
+}
+
+.main-stop {
+    stop-color: rgb(224, 14, 119);
+}
+
+.alt-stop {
+    stop-color: hsl(15, 100%, 50%);
 }

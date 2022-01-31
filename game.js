@@ -67,7 +67,7 @@ let scene = {
     },
     start() {
         let randVel = new Vec(0,helpers.random(-1,1));
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 40; i++) {
             let offset = 20;
             let x = helpers.random(-offset, W+offset);
             let y = helpers.random(-offset, H+offset);
@@ -95,6 +95,7 @@ class Star {
         this.velocity = new Vec(0, 0);
         this.size = size;
         this.randVel = randVel;
+        this.friction = 0.9;
         this.maxspeed = 2;
         this.alpha = 1 ;
         this.color = `rgba(255,255,255,${helpers.scale(size, 2,8,0,0.5)})`;
@@ -233,15 +234,15 @@ function collisionManager() {
                     });
                 }
                 cooldown = true;
-                asteroidList = [];
                 setTimeout(() =>{
+                    asteroidList = [];
                     ship.respawn();
                     create({
                         type: 'asteroid',
                         qty: 4
                     });
                     cooldown = false;
-                }, 2000)
+                }, 500)
             }
             if(bu.length > 0) {
                 for (let j = 0; j < bu.length; j++) {
@@ -293,6 +294,7 @@ class Asteroid {
         this.rad = rad || 40;
         this.maxspeed = 1;
         this.lightness = 53;
+        this.lineThickness = 2.5;
         this.color = 'hsl(15, 100%,';
     }
     border() {
@@ -309,13 +311,14 @@ class Asteroid {
     }
     spawn() {
         let x, y, randDir;
+
         if (this.rad === 40) {
-            if (helpers.random(-1, 1) > 0) {
-                x = helpers.random(-1,1)>0? -this.rad : W + this.rad;
-                y = helpers.random(-1,1)>0? -this.rad : H + this.rad;
+            if (helpers.random(-1, 1)>0) {
+                x = helpers.random(-1,1) > 0 ? -this.rad*2 : W+this.rad*2;
+                y = helpers.random(-this.rad, H+this.rad);
             } else {
-                x = helpers.random(-1,1)>0? -this.rad : W + this.rad;
-                y = helpers.random(-1,1)>0? -this.rad : H + this.rad;
+                x = helpers.random(-this.rad, W+this.rad*2);
+                y = helpers.random(-1,1) > 0 ? -this.rad*2 : H+this.rad*2;
             }
             randDir = new Vec(helpers.random(-1, 1), helpers.random(-1, 1));
             let targetDir = Vec.vector('subt', ship.pos, new Vec(x, y)).normalise();
@@ -334,14 +337,21 @@ class Asteroid {
         } = this.pos;
         CTX.shadowColor = CTX.strokeStyle = `${this.color}${this.lightness}%)`;
         CTX.shadowBlur = 8;
-        CTX.lineWidth = 2.5;
+        CTX.lineWidth = this.lineThickness;
         CTX.beginPath();
-        CTX.arc(x, y, this.rad, 0, PI2)
+        CTX.arc(x, y, this.rad || 0.01, 0, PI2)
         CTX.closePath();
         CTX.stroke();
         CTX.shadowBlur = 0;
     }
     update() {
+        if(cooldown) {
+            if(this.lineThickness<=0.1) {
+                this.lineThickness = 0.1;
+            } else {
+                this.lineThickness -=0.1
+            }
+        }
         this.pos.add(this.velocity);
     }
 };
@@ -579,7 +589,7 @@ function loop(timestamp) {
     scoreManager()
     // Meter.run(timestamp);
     // log();
-    // gui()
+    gui()
 }
 
 function init() {
@@ -732,8 +742,10 @@ function log() {
 }
 
 function gui() {
-    let style = `rotate(${helpers.radToDeg(ship.angle)-90})`;
-    angleDom.setAttribute('transform', style);
+    if(scene.current === 'game') {
+        let style = `rotate(${helpers.radToDeg(ship.angle)-90})`;
+        angleDom.setAttribute('transform', style);
+    }
 }
 
 buttonDom.addEventListener('click', () => {

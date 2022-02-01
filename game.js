@@ -6,17 +6,16 @@ const CTX = document.querySelector('#game').getContext('2d'),
     W = CTX.canvas.width = 600 || innerWidth,
     H = CTX.canvas.height = 600 || innerHeight,
     PI = Math.PI,
-    PI2 = PI * 2,
-    FPS = 60;
+    PI2 = PI * 2;
+
 
 let ship,
     particleList = [],
     bulletList = [],
     asteroidList = [],
     explosionList = [],
-    starsList = [],
-    damagePlumList = [],
-    isCollision = false,
+    starList = [],
+    damageNumList = [],
     logger = document.querySelector('#logger'),
     angleDom = document.querySelector('#gui_left svg'),
     scoreDom = document.querySelector('#gui_center'),
@@ -27,8 +26,8 @@ let ship,
     gameOverDom = document.querySelector('#game_over'),
     replayDom = document.querySelector('#button_replay'),
     goScoreDom = document.querySelector('.actual_score'),
-    goMaxScoreDom = document.querySelector('.actual_max_score'),
-    cooldown = false;
+    goMaxScoreDom = document.querySelector('.actual_max_score');
+
 
 let helpers = {
     degToRad(deg) {
@@ -61,7 +60,9 @@ let helpers = {
 
 let state = {
     maxScore: 0,
-    score: 0
+    score: 0,
+    isCollision: false,
+    isCooldown: false
 }
 let scene = {
     current:'start',
@@ -76,7 +77,7 @@ let scene = {
             let y = helpers.random(-offset, H+offset);
             let pos = new Vec(x, y);
             let size = helpers.random(2,8);
-            starsList.push(new Star(pos, size,randVel));
+            starList.push(new Star(pos, size,randVel));
         }
     },
     game() {
@@ -119,8 +120,8 @@ function collisionManager() {
             let s = ship;
             let asteroidShipRads = a.rad + ship.scale;
             if(helpers.distance(s.centroid().add(s.pos), a.pos) < asteroidShipRads) {
-                if(!isCollision) {
-                    if(!cooldown) {
+                if(!state.isCollision) {
+                    if(!state.isCooldown) {
                         create({
                             type: 'explosion',
                             color: 'hsl(0, 100%, 99%)',
@@ -128,20 +129,20 @@ function collisionManager() {
                             pos:s.centroid().add(s.pos)
                         });
                     }
-                    cooldown = true;
+                    state.isCooldown = true;
                     setTimeout(() => {
+                        heartManager();
                         asteroidList = [];
                         ship.respawn();
-                        heartManager();
                         create({
                             type: 'asteroid',
                             qty: 4
                         });
-                        cooldown = false;
-                        isCollision = false;
+                        state.isCooldown = false;
+                        state.isCollision = false;
                     }, 500);
                 }
-                isCollision = true;
+                state.isCollision = true;
             }
             if(bu.length > 0) {
                 for (let j = 0; j < bu.length; j++) {
@@ -182,6 +183,27 @@ function collisionManager() {
             }
         }
     }
+}
+function heartManager() {
+    if(ship.heart < 1) {
+        state.isCooldown = false;
+        state.isCollision = false;
+        scene.setCurrent('gameover')
+        scene.gameOver();
+    }
+    let heartSvg = `<svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>`;
+    let heartHtmlTotal = '';
+    if(ship) {
+        for(let i=0;i<ship.heart;i++) {
+            heartHtmlTotal += heartSvg;
+        }
+    }
+
+    heartDom.innerHTML = heartHtmlTotal;
+
+}
+function scoreManager() {
+    scoreDom.innerText = String(state.score).padStart(4, '0');
 }
 
 let meter = {
@@ -401,7 +423,7 @@ class Asteroid {
         CTX.shadowBlur = 0;
     }
     update() {
-        if(cooldown) {
+        if(state.isCooldown) {
             if(this.lineThickness<=0.1) {
                 this.lineThickness = 0.1;
             } else {
@@ -483,7 +505,7 @@ class Ship {
         this.color = 'rgba(43, 50, 56, 1)';
     }
     draw() {
-        if(cooldown) return;
+        if(state.isCooldown) return;
         let {
             x,
             y
@@ -530,7 +552,7 @@ class Ship {
         this.scale = 0.1;
     }
     update() {
-        if(cooldown) return;
+        if(state.isCooldown) return;
         if(this.scale<12) {
             this.scale = helpers.lerp(this.scale, 12, 0.05);
         }
@@ -612,7 +634,7 @@ class ThrustParticle {
 function loop() {
     CTX.clearRect(0, 0, W, H);
     meter.tick();
-    for (let d of starsList) {
+    for (let d of starList) {
         d.update();
         d.draw()
     }
@@ -634,14 +656,14 @@ function loop() {
             e.draw()
             e.update();
         }
-        for (let d of damagePlumList) {
+        for (let d of damageNumList) {
             d.update();
             d.draw()
         }
     }
 
     if(scene.current === 'game') {
-        if(!isCollision) {
+        if(!state.isCollision) {
             collisionManager();
         }
         ship.update();
@@ -679,33 +701,12 @@ function garbageCollector() {
             explosionList.splice(i, 1);
         }
     }
-    for (let i = 0; i < damagePlumList.length; i++) {
-        let e = damagePlumList[i];
+    for (let i = 0; i < damageNumList.length; i++) {
+        let e = damageNumList[i];
         if (e.size <= 0) {
-            damagePlumList.splice(i, 1);
+            damageNumList.splice(i, 1);
         }
     }
-}
-function heartManager() {
-    if(ship.heart < 1) {
-        cooldown = false;
-        isCollision = false;
-        scene.setCurrent('gameover')
-        scene.gameOver();
-    }
-    let heartSvg = `<svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>`;
-    let heartHtmlTotal = '';
-    if(ship) {
-        for(let i=0;i<ship.heart;i++) {
-            heartHtmlTotal += heartSvg;
-        }
-    }
-
-    heartDom.innerHTML = heartHtmlTotal;
-
-}
-function scoreManager() {
-    scoreDom.innerText = String(state.score).padStart(4, '0');
 }
 
 function crtEffect() {
@@ -734,6 +735,7 @@ function create(args) {
     } = args;
     switch (type) {
         case 'asteroid':
+            console.log('create called', asteroidList.length)
             for (let i = 0; i < qty; i++) {
                 let randOff = helpers.random(-40,40);
                 let randAngle = helpers.degToRad(helpers.random(0,360));
@@ -804,21 +806,21 @@ function create(args) {
             break;
             case 'plum':
                 let {x,y} = pos;
-                damagePlumList.push(new DamagePlum(new Vec(x,y), dmg))
+                damageNumList.push(new DamagePlum(new Vec(x,y), dmg))
             break;
     }
 }
 function log() {
     let msg = `ParticleList Length ${particleList.length}
     ExplosionList Length ${explosionList.length}
-    StarsList Length ${starsList.length}
+    starList Length ${starList.length}
     AsteroidList Length ${asteroidList.length}
-    damagePlumList Length ${damagePlumList.length}
+    damageNumList Length ${damageNumList.length}
     BulletList Length ${bulletList.length}
     Hearts ${ship?ship.heart:'wait'}
     current scene ${scene.current}
-    Cooldown ${cooldown}
-    isCollision ${isCollision}
+    state.isCooldown ${state.isCooldown}
+    state.isCollision ${state.isCollision}
 
 
     `

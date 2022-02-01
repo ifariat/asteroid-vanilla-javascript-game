@@ -10,8 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="meter.css">
-    <script defer type="module" src="meter.js"></script>
     <script defer type="module" src="Input.js"></script>
     <script defer type="module" src="Vec.js"></script>
     <script defer type="module" src="game.js"></script>
@@ -30,10 +28,28 @@
             </div>
             <div id="gui_center">200</div>
             <div id="gui_right">
-                <div class="health">
-                    <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
-                    <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
-                    <svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>
+                <div id="heart">
+
+                </div>
+            </div>
+            <div class="fps">
+                <div id="fps_prim">00</div>
+                <div id="fps_sec">FPS</div>
+            </div>
+        </div>
+        <div id="game_over">
+            <div class="text_main">Game Over</div>
+            <div class="score">
+                <div class="score_label">score</div>
+                <div class="actual_score">300</div>
+            </div>
+            <div class="max_score">
+                <div class="max_score_label">max score</div>
+                <div class="actual_max_score">200</div>
+            </div>
+            <div class="replay">
+                <div id="button_replay">
+                    <svg x="0px" y="0px" viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve"><path class="st0" d="M12.8,4.1h-7l3.2-3.2L8.4,0.1L4,4.5L8.5,9l0.7-0.7L5.9,5h7c1.2,0,2.2,1,2.2,2.2v5.4c0,1.2-1,2.2-2.2,2.2H7.2c-1.2,0-2.2-1-2.2-2.2v-2H4v2c0,1.8,1.4,3.2,3.2,3.2h5.7c1.8,0,3.2-1.4,3.2-3.2V7.3C16.1,5.5,14.6,4.1,12.8,4.1z"/></svg>
                 </div>
             </div>
         </div>

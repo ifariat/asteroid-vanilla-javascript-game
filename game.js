@@ -1,7 +1,6 @@
 'use strict'
 import Vec from './Vec.js';
 import Input from './Input.js';
-import Meter from './Meter.js';
 
 const CTX = document.querySelector('#game').getContext('2d'),
     W = CTX.canvas.width = 600 || innerWidth,
@@ -9,6 +8,7 @@ const CTX = document.querySelector('#game').getContext('2d'),
     PI = Math.PI,
     PI2 = PI * 2,
     FPS = 60;
+
 let ship,
     particleList = [],
     bulletList = [],
@@ -16,14 +16,18 @@ let ship,
     explosionList = [],
     starsList = [],
     damagePlumList = [],
-    gameOver = false,
-    loopId,
+    isCollision = false,
     logger = document.querySelector('#logger'),
     angleDom = document.querySelector('#gui_left svg'),
     scoreDom = document.querySelector('#gui_center'),
     buttonDom = document.querySelector('.button'),
     lobbyDom = document.querySelector('.lobby'),
     guiDom = document.querySelector('.gui'),
+    heartDom = document.querySelector('#heart'),
+    gameOverDom = document.querySelector('#game_over'),
+    replayDom = document.querySelector('#button_replay'),
+    goScoreDom = document.querySelector('.actual_score'),
+    goMaxScoreDom = document.querySelector('.actual_max_score'),
     cooldown = false;
 
 let helpers = {
@@ -55,7 +59,6 @@ let helpers = {
     }
 }
 
-
 let state = {
     maxScore: 0,
     score: 0
@@ -84,137 +87,28 @@ let scene = {
                 qty: 4
             })
             guiDom.style.display = 'flex';
+            guiDom.style.animation = 'fadeIn 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
             Input.listen();
-        }, 1200)
-
+        }, 800)
+        heartManager();
+    },
+    gameOver() {
+        if(state.score > state.maxScore) {
+            state.maxScore = state.score;
+        }
+        asteroidList = [];
+        ship = null;
+        explosionList = []
+        guiDom.style.animation = 'fadeOut 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
+        goMaxScoreDom.innerText =state.maxScore;
+        goScoreDom.innerText = state.score;
+        setTimeout(() => {
+            guiDom.style.display = 'none';
+            gameOverDom.style.display = 'flex';
+            gameOverDom.style.animation = 'fadeIn 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
+        },700)
     }
 }
-class Star {
-    constructor(pos,size, randVel) {
-        this.pos = pos;
-        this.velocity = new Vec(0, 0);
-        this.size = size;
-        this.randVel = randVel;
-        this.friction = 0.9;
-        this.maxspeed = 2;
-        this.alpha = 1 ;
-        this.color = `rgba(255,255,255,${helpers.scale(size, 2,8,0,0.5)})`;
-    }
-    draw() {
-        let {
-            x,
-            y
-        } = this.pos;
-        let r = this.size;
-        CTX.shadowColor = CTX.fillStyle = this.color;
-        CTX.shadowBlur = 20;
-        CTX.beginPath();
-        CTX.fillRect(x, y, r, r);
-        CTX.fill();
-        CTX.shadowBlur = 0;
-    }
-    applyForce(f) {
-        this.acceleration.add(f.normalise().mult(this.maxspeed));
-    }
-    update() {
-        let size = this.size;
-        let {x,y} = this.pos;
-        if(x > W) {
-            this.pos.x = -size;
-        } else if(x+size<0) {
-            this.pos.x = W;
-        }
-        if(y > H) {
-            this.pos.y = -size;
-        } else if(y+size<0) {
-            this.pos.y = H;
-        }
-        let vel = scene.current === 'game' ? ship.velocity : this.randVel;
-        this.velocity.add(vel.negative().mult(this.size * 0.05));
-        this.pos.add(this.velocity);
-        this.velocity.limit(0.1);
-    }
-};
-class DamagePlum {
-    constructor(pos,dmg) {
-        this.pos = pos;
-        this.dmg = dmg;
-        this.acceleration = new Vec(0,-1);
-        this.friction = new Vec(0,0.99);
-        this.velocity = new Vec(0, 0);
-        this.alpha = 1;
-        this.size = 20;
-        this.color = 'rgba(255,255,255,';
-    }
-    draw() {
-        let {
-            x,
-            y
-        } = this.pos;
-        CTX.shadowColor = CTX.fillStyle = `${this.color}${this.alpha})`; 
-        CTX.textAlign = 'center';
-        CTX.font = `${this.size}px meter`;
-        CTX.fillText(`+${this.dmg}`,x,y)
-        CTX.shadowBlur = 0;
-    }
-    update() {
-        if (this.size - 0.4 > 0) {
-            this.size -= 0.4;
-        }
-        this.alpha -= 0.03;
-        this.text
-        this.velocity.add(this.acceleration);
-        this.pos.add(this.velocity);
-        this.velocity.mult(this.friction);
-        this.acceleration.mult(0);
-    }
-}
-class Explosion {
-    constructor(pos, acc, color, nature) {
-        this.pos = pos;
-        this.velocity = new Vec(0, 0);
-        this.acceleration = acc;
-        this.friction = 0.99;
-        this.isStroke = helpers.random(0,1) < 0.5;
-        this.rad = helpers.random(1, 5);
-        this.maxspeed = 0.01;
-        this.nature = nature;
-        this.hue = 40;
-        this.color = color || ',80%,50%)';
-    }
-    draw() {
-        let {
-            x,
-            y
-        } = this.pos;
-        CTX.globalCompositeOperation = "lighter";
-        if(this.nature === 'self') {
-            CTX.shadowColor = CTX.fillStyle = this.color; 
-        } else {
-            CTX.shadowColor = CTX.fillStyle = `hsl(${this.hue}${this.color}`; 
-        }
-        CTX.shadowBlur = 20;
-        CTX.beginPath();
-        CTX.arc(x, y, this.rad, 0, PI2)
-        CTX.fill();
-        CTX.globalCompositeOperation = "source-over";
-        CTX.shadowBlur = 0;
-    }
-    applyForce(f) {
-        this.acceleration.add(f.normalise().mult(this.maxspeed));
-    }
-    update() {
-        this.hue -= 1 ;
-        if (this.rad - 0.05 >= 0) {
-            this.rad -= 0.05;
-        }
-        this.applyForce(this.acceleration);
-        this.velocity.add(this.acceleration);
-        this.pos.add(this.velocity);
-        this.velocity.mult(this.friction);
-        this.acceleration.mult(0);
-    }
-};
 
 function collisionManager() {
     let bu = bulletList;
@@ -225,24 +119,29 @@ function collisionManager() {
             let s = ship;
             let asteroidShipRads = a.rad + ship.scale;
             if(helpers.distance(s.centroid().add(s.pos), a.pos) < asteroidShipRads) {
-                if(!cooldown) {
-                    create({
-                        type: 'explosion',
-                        color: 'hsl(0, 100%, 99%)',
-                        nature:  'self',
-                        pos:s.centroid().add(s.pos)
-                    });
+                if(!isCollision) {
+                    if(!cooldown) {
+                        create({
+                            type: 'explosion',
+                            color: 'hsl(0, 100%, 99%)',
+                            nature:  'self',
+                            pos:s.centroid().add(s.pos)
+                        });
+                    }
+                    cooldown = true;
+                    setTimeout(() => {
+                        asteroidList = [];
+                        ship.respawn();
+                        heartManager();
+                        create({
+                            type: 'asteroid',
+                            qty: 4
+                        });
+                        cooldown = false;
+                        isCollision = false;
+                    }, 500);
                 }
-                cooldown = true;
-                setTimeout(() =>{
-                    asteroidList = [];
-                    ship.respawn();
-                    create({
-                        type: 'asteroid',
-                        qty: 4
-                    });
-                    cooldown = false;
-                }, 500)
+                isCollision = true;
             }
             if(bu.length > 0) {
                 for (let j = 0; j < bu.length; j++) {
@@ -284,6 +183,163 @@ function collisionManager() {
         }
     }
 }
+
+let meter = {
+    fps: undefined,
+    desiredFPS: 60,
+    timeNow: performance.now(),
+    startTime: performance.now(),
+    fpsDom: document.querySelector("#fps_prim"),
+    dtSum: [],
+    cycle: 0,
+    calc() {
+      this.timeNow = performance.now();
+      let diff = this.timeNow - this.startTime;
+      this.dtSum += diff;
+      this.dt = diff / 1000;
+      this.startTime = this.timeNow;
+      this.cycle++;
+    },
+    tick() {
+      this.calc();
+      if (this.cycle >= 60) {
+        let totalFps =helpers.precise(1000/(this.dtSum/this.cycle),0);
+        this.fps = isNaN(totalFps) ? 'Calc..' : totalFps-2;
+        this.fpsDom.innerHTML = `${this.fps}`;
+        this.cycle = this.dtSum = 0;
+      }
+    }
+  };
+class Star {
+    constructor(pos,size, randVel) {
+        this.pos = pos;
+        this.velocity = new Vec(0, 0);
+        this.size = size;
+        this.randVel = randVel;
+        this.friction = 0.9;
+        this.maxspeed = 2;
+        this.alpha = 1 ;
+        this.color = `rgba(255,255,255,${helpers.scale(size, 2,8,0,0.5)})`;
+    }
+    draw() {
+        let {
+            x,
+            y
+        } = this.pos;
+        let r = this.size;
+        CTX.fillStyle = this.color;
+        CTX.shadowColor = 'white';
+        CTX.shadowBlur = 10;
+        CTX.beginPath();
+        CTX.fillRect(x, y, r, r);
+        CTX.fill();
+        CTX.shadowBlur = 0;
+    }
+    applyForce(f) {
+        this.acceleration.add(f.normalise().mult(this.maxspeed));
+    }
+    update() {
+        let size = this.size;
+        let {x,y} = this.pos;
+        if(x > W) {
+            this.pos.x = -size;
+        } else if(x+size<0) {
+            this.pos.x = W;
+        }
+        if(y > H) {
+            this.pos.y = -size;
+        } else if(y+size<0) {
+            this.pos.y = H;
+        }
+        let vel = scene.current === 'game' ? ship?ship.velocity : this.randVel : this.randVel;
+        this.velocity.add(vel.negative().mult(this.size * 0.05));
+        this.pos.add(this.velocity);
+        this.velocity.limit(0.1);
+    }
+};
+
+class DamagePlum {
+    constructor(pos,dmg) {
+        this.pos = pos;
+        this.dmg = dmg;
+        this.acceleration = new Vec(0,-1);
+        this.friction = new Vec(0,0.99);
+        this.velocity = new Vec(0, 0);
+        this.alpha = 1;
+        this.size = 20;
+        this.color = 'rgba(255,255,255,';
+    }
+    draw() {
+        let {
+            x,
+            y
+        } = this.pos;
+        CTX.shadowColor = CTX.fillStyle = `${this.color}${this.alpha})`; 
+        CTX.textAlign = 'center';
+        CTX.font = `${this.size}px meter`;
+        CTX.fillText(`+${this.dmg}`,x,y)
+        CTX.shadowBlur = 0;
+    }
+    update() {
+        if (this.size - 0.4 > 0) {
+            this.size -= 0.4;
+        }
+        this.alpha -= 0.03;
+        this.text
+        this.velocity.add(this.acceleration);
+        this.pos.add(this.velocity);
+        this.velocity.mult(this.friction);
+        this.acceleration.mult(0);
+    }
+}
+class Explosion {
+    constructor(pos, acc, color, nature) {
+        this.pos = pos;
+        this.velocity = new Vec(0, 0);
+        this.acceleration = acc;
+        this.friction = 0.97;
+        this.isStroke = helpers.random(0,1) < 0.5;
+        this.rad = helpers.random(1, 5);
+        this.maxspeed = 0.01;
+        this.nature = nature;
+        this.hue = 42;
+        this.color = color || ',80%,50%)';
+    }
+    draw() {
+        let {
+            x,
+            y
+        } = this.pos;
+        CTX.globalCompositeOperation = "lighter";
+        if(this.nature === 'self') {
+            CTX.shadowColor = CTX.fillStyle = this.color; 
+        } else {
+            CTX.shadowColor = CTX.fillStyle = `hsl(${this.hue}${this.color}`; 
+        }
+        CTX.shadowBlur = 20;
+        CTX.beginPath();
+        CTX.arc(x, y, this.rad, 0, PI2)
+        CTX.fill();
+        CTX.globalCompositeOperation = "source-over";
+        CTX.shadowBlur = 0;
+    }
+    applyForce(f) {
+        this.acceleration.add(f.normalise().mult(this.maxspeed));
+    }
+    update() {
+        if(this.hue>10) {
+            this.hue -= 1 ;
+        }
+        if (this.rad - 0.05 >= 0) {
+            this.rad -= 0.05;
+        }
+        this.applyForce(this.acceleration);
+        this.velocity.add(this.acceleration);
+        this.pos.add(this.velocity);
+        this.velocity.mult(this.friction);
+        this.acceleration.mult(0);
+    }
+};
 
 class Asteroid {
     constructor(pos, rad, vel) {
@@ -416,7 +472,7 @@ class Ship {
         this.angle = helpers.degToRad(90);
         this.friction = 1;
         this.delay = 2;
-        this.hearth = 3;
+        this.heart = 3;
         this.maxspeed = 0.09;
         this.centroid = () => {
             let g = this.geometry;
@@ -433,7 +489,8 @@ class Ship {
             y
         } = this.centroid();
         let g = this.geometry;
-        CTX.fillStyle = 'white';
+        CTX.fillStyle = CTX.shadowColor = 'white';
+        CTX.shadowBlur = 10;
         CTX.lineWidth = 3;
         CTX.save();
         CTX.translate(x + this.pos.x, y + this.pos.y) // translate canvas to centroid of the triangle.
@@ -446,6 +503,7 @@ class Ship {
         CTX.closePath();
         CTX.fill();
         CTX.restore();
+        CTX.shadowBlur = 0;
     }
     border() {
         let size = this.centroid().y;
@@ -464,7 +522,7 @@ class Ship {
         this.acceleration = f.normalise().mult(this.maxspeed)
     }
     respawn() {
-        this.hearth--;
+        this.heart--;
         this.pos = new Vec(W/2,H/2);
         this.velocity = new Vec(0, 0);
         this.acceleration = new Vec(0, 0);
@@ -551,50 +609,55 @@ class ThrustParticle {
 }
 /////////////// LOOP ////////////////
 
-function loop(timestamp) {
-    CTX.clearRect(0, 0, W, H)
+function loop() {
+    CTX.clearRect(0, 0, W, H);
+    meter.tick();
     for (let d of starsList) {
         d.update();
         d.draw()
     }
-    for (let a of asteroidList) {
-        a.draw();
-        a.update();
-        a.border();
+    if(scene.current !== 'gameover') {
+        for (let a of asteroidList) {
+            a.draw();
+            a.update();
+            a.border();
+        }
+        for (let p of particleList) {
+            p.draw()
+            p.update();
+        }
+        for (let b of bulletList) {
+            b.draw()
+            b.update();
+        }
+        for (let e of explosionList) {
+            e.draw()
+            e.update();
+        }
+        for (let d of damagePlumList) {
+            d.update();
+            d.draw()
+        }
     }
-    for (let p of particleList) {
-        p.draw()
-        p.update();
-    }
-    for (let b of bulletList) {
-        b.draw()
-        b.update();
-    }
-    for (let e of explosionList) {
-        e.draw()
-        e.update();
-    }
-    for (let d of damagePlumList) {
-        d.update();
-        d.draw()
-    }
-    if(scene.current !== 'start') {
-        collisionManager();
+
+    if(scene.current === 'game') {
+        if(!isCollision) {
+            collisionManager();
+        }
         ship.update();
         ship.border();
         ship.draw();
     }
     crtEffect();
     garbageCollector();
-    scoreManager()
-    // Meter.run(timestamp);
+    scoreManager();
     // log();
     gui()
 }
 
 function init() {
     scene.start();
-    setInterval(loop, 1000/FPS);
+    setInterval(loop, 1000/60);
 }
 
 function garbageCollector() {
@@ -623,7 +686,24 @@ function garbageCollector() {
         }
     }
 }
+function heartManager() {
+    if(ship.heart < 1) {
+        cooldown = false;
+        isCollision = false;
+        scene.setCurrent('gameover')
+        scene.gameOver();
+    }
+    let heartSvg = `<svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>`;
+    let heartHtmlTotal = '';
+    if(ship) {
+        for(let i=0;i<ship.heart;i++) {
+            heartHtmlTotal += heartSvg;
+        }
+    }
 
+    heartDom.innerHTML = heartHtmlTotal;
+
+}
 function scoreManager() {
     scoreDom.innerText = String(state.score).padStart(4, '0');
 }
@@ -641,8 +721,6 @@ function crtEffect() {
         CTX.stroke();
     }
 }
-
-
 
 function create(args) {
     let {
@@ -737,6 +815,12 @@ function log() {
     AsteroidList Length ${asteroidList.length}
     damagePlumList Length ${damagePlumList.length}
     BulletList Length ${bulletList.length}
+    Hearts ${ship?ship.heart:'wait'}
+    current scene ${scene.current}
+    Cooldown ${cooldown}
+    isCollision ${isCollision}
+
+
     `
     logger.innerText = msg;
 }
@@ -747,14 +831,21 @@ function gui() {
         angleDom.setAttribute('transform', style);
     }
 }
-
+replayDom.addEventListener('click', () => {
+    gameOverDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
+    setTimeout(()=>{
+        scene.game();
+        scene.setCurrent('game');
+        gameOverDom.style.display = 'none';
+    },600)
+})
 buttonDom.addEventListener('click', () => {
-    lobbyDom.style.animation = 'fadeIn 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
-    setTimeout(()=>{ 
+    lobbyDom.style.animation = 'fadeOut 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
+    setTimeout(()=> { 
         scene.game();
         scene.setCurrent('game');
         lobbyDom.style.display = 'none';
     },1200)
 })
-init();
 
+init();

@@ -19,7 +19,7 @@
     <div id="logger"></div>
     <div class="container">
         <div class="lobby">
-            <div id="logo"><svg viewBox="0 0 301.24 31.49"><defs><style>.cls-1{fill:#fff;}</style></defs><g><g><linearGradient id="gradient"><stop class="main-stop" offset="0%" /><stop class="alt-stop" offset="100%" /></linearGradient><polygon class="triangle" points="0 31.49 36.36 31.49 18.18 0 0 31.49"/><polygon class="cls-1" points="50.99 18.88 76.14 18.88 76.14 25.2 50.99 25.2 50.99 31.49 82.43 31.49 82.43 12.67 57.27 12.67 57.27 6.34 82.43 6.34 82.43 0.05 50.99 0.05 50.99 18.88"/><polygon class="cls-1" points="91.86 6.38 104.43 6.38 104.43 31.49 110.72 31.49 110.72 6.38 123.3 6.38 123.3 0.05 91.86 0.05 91.86 6.38"/><polygon class="cls-1" points="132.73 31.49 164.17 31.49 164.17 25.17 139.01 25.17 139.01 18.92 164.17 18.92 164.17 12.59 139.01 12.59 139.01 6.38 164.17 6.38 164.17 0.05 132.73 0.05 132.73 31.49"/><path class="cls-1" d="M173.6.05V31.49h6.29V18.92h12.57V31.49h6.29V18.92H205V.05H173.6Zm25.15,12.19H179.89V6h18.86Z"/><path class="cls-1" d="M214.47.05V31.49h31.44V.05H214.47Zm25.15,25.12H220.75V6.38h18.87Z"/><rect class="cls-1" x="255.34" y="0.05" width="6.29" height="31.44"/><path class="cls-1" d="M287.13.05H269.8V6.38h3.14V25.17H269.8v6.32h31.44V.05ZM295,25.17H279.23V6.38H295Z"/></g></g></svg></div>
+            <div class="logo"><svg viewBox="0 0 301.24 31.49"><defs><style>.cls-1{fill:#fff;}</style></defs><g><g><linearGradient id="gradient"><stop class="main-stop" offset="0%" /><stop class="alt-stop" offset="100%" /></linearGradient><polygon class="triangle" points="0 31.49 36.36 31.49 18.18 0 0 31.49"/><polygon class="cls-1" points="50.99 18.88 76.14 18.88 76.14 25.2 50.99 25.2 50.99 31.49 82.43 31.49 82.43 12.67 57.27 12.67 57.27 6.34 82.43 6.34 82.43 0.05 50.99 0.05 50.99 18.88"/><polygon class="cls-1" points="91.86 6.38 104.43 6.38 104.43 31.49 110.72 31.49 110.72 6.38 123.3 6.38 123.3 0.05 91.86 0.05 91.86 6.38"/><polygon class="cls-1" points="132.73 31.49 164.17 31.49 164.17 25.17 139.01 25.17 139.01 18.92 164.17 18.92 164.17 12.59 139.01 12.59 139.01 6.38 164.17 6.38 164.17 0.05 132.73 0.05 132.73 31.49"/><path class="cls-1" d="M173.6.05V31.49h6.29V18.92h12.57V31.49h6.29V18.92H205V.05H173.6Zm25.15,12.19H179.89V6h18.86Z"/><path class="cls-1" d="M214.47.05V31.49h31.44V.05H214.47Zm25.15,25.12H220.75V6.38h18.87Z"/><rect class="cls-1" x="255.34" y="0.05" width="6.29" height="31.44"/><path class="cls-1" d="M287.13.05H269.8V6.38h3.14V25.17H269.8v6.32h31.44V.05ZM295,25.17H279.23V6.38H295Z"/></g></g></svg></div>
             <div class="button">Start</div>
         </div>
         <div class="gui">
@@ -37,19 +37,93 @@
                 <div id="fps_sec">FPS</div>
             </div>
         </div>
-        <div id="game_over">
+        <!-- <div id="game_over">
             <div class="text_main">Game Over</div>
-            <div class="score">
-                <div class="score_label">score</div>
-                <div class="actual_score">300</div>
-            </div>
             <div class="max_score">
                 <div class="max_score_label">max score</div>
                 <div class="actual_max_score">200</div>
             </div>
-            <div class="replay">
-                <div id="button_replay">
-                    <svg x="0px" y="0px" viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve"><path class="st0" d="M12.8,4.1h-7l3.2-3.2L8.4,0.1L4,4.5L8.5,9l0.7-0.7L5.9,5h7c1.2,0,2.2,1,2.2,2.2v5.4c0,1.2-1,2.2-2.2,2.2H7.2c-1.2,0-2.2-1-2.2-2.2v-2H4v2c0,1.8,1.4,3.2,3.2,3.2h5.7c1.8,0,3.2-1.4,3.2-3.2V7.3C16.1,5.5,14.6,4.1,12.8,4.1z"/></svg>
+
+        </div> -->
+        <div id="game_over">
+            <div class="left_side">
+                <div class="game_over_text">
+                    <h5>game over</h5>
+                </div>
+                <div class="logo"><svg viewBox="0 0 301.24 31.49"><defs><style>.cls-1{fill:#fff;}</style></defs><g><g><linearGradient id="gradient2"><stop class="main-stop" offset="0%" /><stop class="alt-stop" offset="100%" /></linearGradient><polygon class="triangle" points="0 31.49 36.36 31.49 18.18 0 0 31.49"/><polygon class="cls-1" points="50.99 18.88 76.14 18.88 76.14 25.2 50.99 25.2 50.99 31.49 82.43 31.49 82.43 12.67 57.27 12.67 57.27 6.34 82.43 6.34 82.43 0.05 50.99 0.05 50.99 18.88"/><polygon class="cls-1" points="91.86 6.38 104.43 6.38 104.43 31.49 110.72 31.49 110.72 6.38 123.3 6.38 123.3 0.05 91.86 0.05 91.86 6.38"/><polygon class="cls-1" points="132.73 31.49 164.17 31.49 164.17 25.17 139.01 25.17 139.01 18.92 164.17 18.92 164.17 12.59 139.01 12.59 139.01 6.38 164.17 6.38 164.17 0.05 132.73 0.05 132.73 31.49"/><path class="cls-1" d="M173.6.05V31.49h6.29V18.92h12.57V31.49h6.29V18.92H205V.05H173.6Zm25.15,12.19H179.89V6h18.86Z"/><path class="cls-1" d="M214.47.05V31.49h31.44V.05H214.47Zm25.15,25.12H220.75V6.38h18.87Z"/><rect class="cls-1" x="255.34" y="0.05" width="6.29" height="31.44"/><path class="cls-1" d="M287.13.05H269.8V6.38h3.14V25.17H269.8v6.32h31.44V.05ZM295,25.17H279.23V6.38H295Z"/></g></g></svg></div>
+            </div>
+            <div class="right_side">
+                <div class="top_right">
+                    <div class="score">
+                        <div class="score_label">score</div>
+                        <div class="actual_score">300</div>
+                    </div>
+                    <div class="replay">
+                        <div id="button_replay">
+                            <svg x="0px" y="0px" viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve"><path class="st0" d="M12.8,4.1h-7l3.2-3.2L8.4,0.1L4,4.5L8.5,9l0.7-0.7L5.9,5h7c1.2,0,2.2,1,2.2,2.2v5.4c0,1.2-1,2.2-2.2,2.2H7.2c-1.2,0-2.2-1-2.2-2.2v-2H4v2c0,1.8,1.4,3.2,3.2,3.2h5.7c1.8,0,3.2-1.4,3.2-3.2V7.3C16.1,5.5,14.6,4.1,12.8,4.1z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle_right">
+                    <div class="player_stats">
+                        <div class="rank">1</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">2</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">3</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">4</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">5</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">6</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">7</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">8</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">9</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                    <div class="player_stats">
+                        <div class="rank">10</div>
+                        <div class="name">Ibrahim</div>
+                        <div class="score">2500</div>
+                    </div>
+                </div>
+                <div class="bottom_right">
+                    <div class="input">
+                        <input type="text" name="initials" placeholder="Initials..." id="">
+                    </div>
+                    <div class="submit">
+                        <div class="button">Start</div>
+
+                    </div>
                 </div>
             </div>
         </div>

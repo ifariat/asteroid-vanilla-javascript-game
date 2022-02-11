@@ -26,11 +26,34 @@
     }
 }
 
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+}
+
+::-webkit-scrollbar {
+    width: 3px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(185, 100%, 60%);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
     user-select: none;
+    text-rendering: geometricPrecision;
 }
 
 html,
@@ -45,6 +68,10 @@ body {
     justify-content: center;
     align-items: center;
     font-family: 'Staatliches', cursive;
+}
+
+canvas {
+    background: rgba(25, 9, 54, 0.3);
 }
 
 #logger {
@@ -145,7 +172,7 @@ body {
     flex-flow: row wrap;
 }
 
-.lobby .button {
+.button {
     color: #fff;
     font-size: 14px;
     letter-spacing: 10px;
@@ -159,17 +186,17 @@ body {
     z-index: 0;
 }
 
-.lobby .button:hover {
+.button:hover {
     cursor: pointer;
     color: #430247;
 }
 
-.lobby .button:hover::before {
+.button:hover::before {
     width: 100%;
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.lobby .button::before {
+.button::before {
     content: "";
     position: absolute;
     width: 1%;
@@ -180,16 +207,19 @@ body {
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.lobby #logo {
-    width: 70%;
+.lobby .logo {
     padding: 0 54px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100px;
 }
 
-.triangle {
+.logo {
+    width: 70%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo .triangle {
     fill: url(#gradient);
 }
 
@@ -232,29 +262,119 @@ body {
     position: absolute;
     width: 100%;
     height: 100%;
-    justify-content: center;
-    align-items: center;
-    justify-content: center;
-    align-items: center;
-    flex-flow: column wrap;
     display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    /* border: 1px solid red; */
 }
 
-#button_replay {
-    width: 70px;
-    height: 70px;
+.right_side {
+    height: 100%;
+    flex-grow: 1;
+    /* border: 1px solid turquoise; */
+}
+
+.left_side {
+    width: 100px;
+    height: 100%;
+    /* border: 1px solid cornflowerblue; */
+}
+
+.left_side .logo {
+    /* border: 1px solid violet; */
+}
+
+.left_side .logo svg {
+    transform: rotate(-90deg) scale(1.1);
+}
+
+.left_side .logo .triangle {
+    fill: url(#gradient2);
+}
+
+.left_side .game_over_text {
+    /* border: 1px solid cornflowerblue; */
+}
+
+.left_side .game_over_text h5 {
+    transform: rotate(-180deg);
+    writing-mode: vertical-lr;
+    color: #fff;
+    letter-spacing: 7px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 19px;
+}
+
+.left_side div {
+    width: 100%;
+    height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.right_side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+
+.top_right {
+    height: 40%;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 50px 50px 20px;
+}
+
+.top_right .score {
+    width: 100%;
+    height: 100%;
+    font-family: 'meter';
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.top_right .score .score_label {
+    letter-spacing: 6px;
+    color: hsl(185, 100%, 60%);
+    font-size: 9px;
+}
+
+.top_right .score .actual_score {
+    color: #fff;
+    font-size: 50px;
+    letter-spacing: 2px;
+}
+
+.middle_right {
+    overflow-y: scroll;
+    height: 30%;
+    width: calc(100% - 50px);
+}
+
+#button_replay {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
     border: 2px solid hsl(15, 100%, 50%);
     margin-top: 50px;
+    transition: border-radius 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #button_replay:hover {
     cursor: pointer;
     background: linear-gradient( 45deg, rgb(224, 14, 119), hsl(15, 100%, 50%));
     border: none;
+    border-radius: 40%;
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #button_replay:hover svg {
@@ -268,41 +388,72 @@ body {
     transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.text_main {
-    font-size: 8px;
-    font-family: meter;
-    color: rgb(255, 255, 255);
-    background: linear-gradient( 45deg, rgb(224, 14, 119), rgb(255, 64, 0));
-    padding: 5px 16px;
-    letter-spacing: 2px;
-    margin-bottom: 50px;
+.middle_right>div:nth-child(odd) {
+    background: rgba(0, 0, 0, 0.2);
 }
 
-.max_score,
-.score {
-    width: 100%;
+.player_stats {
+    width: calc(100% - 25px);
     display: flex;
-    flex-flow: column wrap;
+    justify-content: space-between;
+    color: #fff;
+    padding: 8px 10px;
+}
+
+.player_stats .score {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.player_stats .rank {
+    margin: 0 20px 0 10px;
+    width: 10px;
+    height: 10px;
+    display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'meter';
-    margin: 8px 0;
-    letter-spacing: 4px;
+    padding: 8px;
+    background: linear-gradient( 45deg, rgb(224, 14, 119), hsl(15, 100%, 50%));
+    font-size: 10px;
+    border-radius: 4px;
 }
 
-.max_score .max_score_label,
-.score .score_label {
-    color: hsl(185, 100%, 60%);
-    font-size: 10px;
+.bottom_right {
+    height: 30%;
+    width: 100%;
+    display: flex;
+}
+
+.bottom_right div {
+    display: flex;
+    align-items: center;
+}
+
+.bottom_right .input {
+    flex: 1;
+}
+
+.bottom_right .input input {
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    padding: 11px 25px;
+    width: 100%;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
     letter-spacing: 1px;
 }
 
-.max_score .actual_max_score,
-.score .actual_score {
-    color: #fff;
-    font-size: 60px;
+.bottom_right .input input::placeholder {
+    color: rgba(255, 255, 255, 0.74);
 }
 
-.max_score {
-    transform: scale(0.6);
+.bottom_right .submit {
+    width: 200px;
+    justify-content: flex-end;
+}
+
+.bottom_right .button {
+    width: 80%;
 }

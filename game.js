@@ -8,7 +8,6 @@ const CTX = document.querySelector('#game').getContext('2d'),
     PI = Math.PI,
     PI2 = PI * 2;
 
-
 let ship,
     particleList = [],
     bulletList = [],
@@ -25,8 +24,7 @@ let ship,
     heartDom = document.querySelector('#heart'),
     gameOverDom = document.querySelector('#game_over'),
     replayDom = document.querySelector('#button_replay'),
-    goScoreDom = document.querySelector('.actual_score'),
-    goMaxScoreDom = document.querySelector('.actual_max_score');
+    goScoreDom = document.querySelector('.actual_score');
 
 
 let helpers = {
@@ -64,12 +62,14 @@ let state = {
     isCollision: false,
     isCooldown: false
 }
+
 let scene = {
     current:'start',
     setCurrent(scene) {
         this.current = scene;
     },
     start() {
+        this.setCurrent('start');
         let randVel = new Vec(0,helpers.random(-1,1));
         for (let i = 0; i < 40; i++) {
             let offset = 20;
@@ -81,6 +81,7 @@ let scene = {
         }
     },
     game() {
+        this.setCurrent('game');
         ship = new Ship(new Vec(W / 2, H / 2));
         setTimeout(()=>{
             create({
@@ -94,6 +95,7 @@ let scene = {
         heartManager();
     },
     gameOver() {
+        this.setCurrent('gameover');
         if(state.score > state.maxScore) {
             state.maxScore = state.score;
         }
@@ -101,7 +103,7 @@ let scene = {
         ship = null;
         explosionList = []
         guiDom.style.animation = 'fadeOut 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
-        goMaxScoreDom.innerText =state.maxScore;
+        // goMaxScoreDom.innerText =state.maxScore;
         goScoreDom.innerText = state.score;
         setTimeout(() => {
             guiDom.style.display = 'none';
@@ -131,15 +133,18 @@ function collisionManager() {
                     }
                     state.isCooldown = true;
                     setTimeout(() => {
-                        heartManager();
-                        asteroidList = [];
                         ship.respawn();
-                        create({
-                            type: 'asteroid',
-                            qty: 4
-                        });
-                        state.isCooldown = false;
-                        state.isCollision = false;
+                        heartManager();
+                        if(scene.current !== 'gameover') {
+                            asteroidList = [];
+                            create({
+                                type: 'asteroid',
+                                qty: 4
+                            });
+                            state.isCooldown = false;
+                            state.isCollision = false;
+                        }
+
                     }, 500);
                 }
                 state.isCollision = true;
@@ -188,7 +193,6 @@ function heartManager() {
     if(ship.heart < 1) {
         state.isCooldown = false;
         state.isCollision = false;
-        scene.setCurrent('gameover')
         scene.gameOver();
     }
     let heartSvg = `<svg viewBox="0 0 8.44 7.31"><g><g><path d="M8.44,7.31H0L4.22,0Z"/></g></g></svg>`;
@@ -280,7 +284,7 @@ class Star {
     }
 };
 
-class DamagePlum {
+class DamagePoint {
     constructor(pos,dmg) {
         this.pos = pos;
         this.dmg = dmg;
@@ -629,10 +633,16 @@ class ThrustParticle {
         this.velocity.mult(this.friction);
     }
 }
+
+function drawBg() {
+    CTX.fillStyle = 'black';
+    CTX.fillRect(0,0,W,H);
+}
 /////////////// LOOP ////////////////
 
 function loop() {
     CTX.clearRect(0, 0, W, H);
+    // drawBg();
     meter.tick();
     for (let d of starList) {
         d.update();
@@ -708,7 +718,6 @@ function garbageCollector() {
         }
     }
 }
-
 function crtEffect() {
     for (let i = 0; i < H; i++) {
         let x = 0;
@@ -722,7 +731,6 @@ function crtEffect() {
         CTX.stroke();
     }
 }
-
 function create(args) {
     let {
         type,
@@ -735,7 +743,7 @@ function create(args) {
     } = args;
     switch (type) {
         case 'asteroid':
-            console.log('create called', asteroidList.length)
+            // console.log('create called', asteroidList.length)
             for (let i = 0; i < qty; i++) {
                 let randOff = helpers.random(-40,40);
                 let randAngle = helpers.degToRad(helpers.random(0,360));
@@ -806,7 +814,7 @@ function create(args) {
             break;
             case 'plum':
                 let {x,y} = pos;
-                damageNumList.push(new DamagePlum(new Vec(x,y), dmg))
+                damageNumList.push(new DamagePoint(new Vec(x,y), dmg))
             break;
     }
 }
@@ -833,15 +841,15 @@ function gui() {
         angleDom.setAttribute('transform', style);
     }
 }
-replayDom.addEventListener('click', () => {
-    gameOverDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
-    setTimeout(()=>{
-        scene.game();
-        scene.setCurrent('game');
-        gameOverDom.style.display = 'none';
-    },600)
-})
-buttonDom.addEventListener('click', () => {
+// replayDom.addEventListener('click', () => { // Replay Button
+//     gameOverDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
+//     setTimeout(()=>{
+//         scene.game();
+//         scene.setCurrent('game');
+//         gameOverDom.style.display = 'none';
+//     },600)
+// })
+buttonDom.addEventListener('click', () => { // Play Button
     lobbyDom.style.animation = 'fadeOut 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
     setTimeout(()=> { 
         scene.game();
@@ -851,3 +859,5 @@ buttonDom.addEventListener('click', () => {
 })
 
 init();
+
+

@@ -33,7 +33,6 @@ let ship,
     explosionList = [],
     starList = [],
     damageNumList = [],
-    logger = document.querySelector('#logger'),
     angleDom = document.querySelector('#gui_left svg'),
     scoreDom = document.querySelector('#gui_center'),
     buttonDom = document.querySelector('.button'),
@@ -84,7 +83,6 @@ let helpers = {
     }
 }
 
-
 async function sendScore() {
     let regex = /^[a-zA-Z0-9]{2,40}$/g;
     if(!!input.value && regex.test(input.value)) {
@@ -94,14 +92,7 @@ async function sendScore() {
                     name: input.value.trim()
                 })
                 state.scoreId = docRef.id;
-                input.value = '';
-                input.setAttribute("disabled", "");
                 await updateScoreBoard();
-                inputCtnDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
-                setTimeout(() => {
-                    inputCtnDom.style.animation = 'unset';
-                    inputCtnDom.style.opacity = 1;
-                }, 600);
             } catch(e) {
                 console.log('error', e);
             }
@@ -232,7 +223,6 @@ function collisionManager() {
                 for (let j = 0; j < bu.length; j++) {
                     let b = bu[j];
                     let asteroidBulletRads = a.rad + b.rad;
-    
                     if (helpers.distance(a.pos, b.pos) < asteroidBulletRads) {
                         bulletList.splice(j, 1);
                         a.health -= 1;
@@ -712,15 +702,8 @@ class ThrustParticle {
     }
 }
 
-function drawBg() {
-    CTX.fillStyle = 'black';
-    CTX.fillRect(0,0,W,H);
-}
-/////////////// LOOP ////////////////
-
 function loop() {
     CTX.clearRect(0, 0, W, H);
-    // drawBg();
     meter.tick();
     for (let d of starList) {
         d.update();
@@ -907,13 +890,12 @@ replayDom.addEventListener('click', (e) => { // Replay Button
     e.preventDefault();
     state.score = 0;
     state.scoreId = '';
-    input.removeAttribute('disabled');
     gameOverDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
     setTimeout(()=>{
         scene.game();
         scene.setCurrent('game');
         gameOverDom.style.display = 'none';
-        inputCtnDom.style.visibility = 'visible';
+        inputCtnDom.style.animation = 'unset';
     },600)
 })
 buttonDom.addEventListener('click', (e) => { // Play Button
@@ -932,4 +914,9 @@ init();
 submit.addEventListener('click', (e) => {
     e.preventDefault();
     sendScore();
+    inputCtnDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
+    setTimeout(()=>{
+        inputCtnDom.style.visibility = 'hidden';
+    },520)
+    input.value = '';
 })

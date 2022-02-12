@@ -8,6 +8,12 @@
     src: url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;800&display=swap");
 }
 
+:root {
+    --color-orange: hsl(15, 100%, 50%);
+    --color-cyan: hsl(185, 100%, 60%);
+    --color-dark-pink: rgb(224, 14, 119);
+}
+
 @keyframes fadeOut {
     0% {
         opacity: 1;
@@ -41,7 +47,7 @@ select:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: hsl(185, 100%, 60%);
+    background: var(--color-cyan);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -116,13 +122,13 @@ canvas {
 }
 
 #heart svg {
-    fill: hsl(185, 100%, 60%);
+    fill: var(--color-cyan);
     width: 13px;
 }
 
 #gui_left svg {
     width: 17px;
-    fill: hsl(185, 100%, 60%);
+    fill: var(--color-cyan);
 }
 
 #author {
@@ -201,7 +207,7 @@ canvas {
     position: absolute;
     width: 1%;
     height: 100%;
-    background: linear-gradient( 45deg, rgb(224, 14, 119), hsl(15, 100%, 50%));
+    background: linear-gradient( 45deg, var(--color-dark-pink), var(--color-orange));
     right: 0;
     z-index: -1;
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -224,11 +230,11 @@ canvas {
 }
 
 .main-stop {
-    stop-color: rgb(224, 14, 119);
+    stop-color: var(--color-dark-pink);
 }
 
 .alt-stop {
-    stop-color: hsl(15, 100%, 50%);
+    stop-color: var(--color-orange);
 }
 
 .fps {
@@ -240,13 +246,11 @@ canvas {
     width: 70px;
     display: flex;
     flex-flow: row wrap;
-    /* border: 1px solid red; */
 }
 
 .fps div {
     font-size: 12px;
     width: 50px;
-    /* border: 1px solid orange; */
 }
 
 #fps_prim {
@@ -254,7 +258,7 @@ canvas {
 }
 
 #fps_sec {
-    color: hsl(185, 100%, 60%);
+    color: var(--color-cyan);
     font-size: 6px;
 }
 
@@ -266,23 +270,16 @@ canvas {
     justify-content: center;
     align-items: center;
     flex-direction: row;
-    /* border: 1px solid red; */
 }
 
 .right_side {
     height: 100%;
     flex-grow: 1;
-    /* border: 1px solid turquoise; */
 }
 
 .left_side {
     width: 100px;
     height: 100%;
-    /* border: 1px solid cornflowerblue; */
-}
-
-.left_side .logo {
-    /* border: 1px solid violet; */
 }
 
 .left_side .logo svg {
@@ -291,10 +288,6 @@ canvas {
 
 .left_side .logo .triangle {
     fill: url(#gradient2);
-}
-
-.left_side .game_over_text {
-    /* border: 1px solid cornflowerblue; */
 }
 
 .left_side .game_over_text h5 {
@@ -341,7 +334,7 @@ canvas {
 
 .top_right .score .score_label {
     letter-spacing: 6px;
-    color: hsl(185, 100%, 60%);
+    color: var(--color-cyan);
     font-size: 9px;
 }
 
@@ -364,14 +357,14 @@ canvas {
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    border: 2px solid hsl(15, 100%, 50%);
+    border: 2px solid var(--color-orange);
     margin-top: 50px;
     transition: border-radius 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #button_replay:hover {
     cursor: pointer;
-    background: linear-gradient( 45deg, rgb(224, 14, 119), hsl(15, 100%, 50%));
+    background: linear-gradient( 45deg, ddd, var(--color-orange));
     border: none;
     border-radius: 40%;
     transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
@@ -414,7 +407,7 @@ canvas {
     justify-content: center;
     align-items: center;
     padding: 8px;
-    background: linear-gradient( 45deg, rgb(224, 14, 119), hsl(15, 100%, 50%));
+    background: linear-gradient( 45deg, var(--color-dark-pink), var(--color-orange));
     font-size: 10px;
     border-radius: 4px;
 }

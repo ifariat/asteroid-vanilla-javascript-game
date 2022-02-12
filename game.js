@@ -2,11 +2,29 @@
 import Vec from './Vec.js';
 import Input from './Input.js';
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js";
+import { getFirestore, collection, addDoc, query, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js";
+
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA5gVG8CgisG1DGJLc71f7pwTgHU-3olWw",
+    authDomain: "asteroid-81b8f.firebaseapp.com",
+    projectId: "asteroid-81b8f",
+    storageBucket: "asteroid-81b8f.appspot.com",
+    messagingSenderId: "707781372972",
+    appId: "1:707781372972:web:026930676dcbe451503589",
+    measurementId: "G-8K2BXK3GSW"
+};
+
 const CTX = document.querySelector('#game').getContext('2d'),
     W = CTX.canvas.width = 600 || innerWidth,
     H = CTX.canvas.height = 600 || innerHeight,
     PI = Math.PI,
     PI2 = PI * 2;
+    
+const app = initializeApp(firebaseConfig);
+const db = getFirestore();
+const scoresRef = collection(db, "scoreboard");
 
 let ship,
     particleList = [],
@@ -24,8 +42,18 @@ let ship,
     heartDom = document.querySelector('#heart'),
     gameOverDom = document.querySelector('#game_over'),
     replayDom = document.querySelector('#button_replay'),
-    goScoreDom = document.querySelector('.actual_score');
+    goScoreDom = document.querySelector('.actual_score'),
+    input = document.querySelector('#input'),
+    submit = document.querySelector('.submit'),
+    inputCtnDom = document.querySelector('.bottom_right'),
+    scoreBoardDom = document.querySelector('.middle_right');
 
+let state = {
+    score: 6745,
+    scoreId: '',
+    isCollision: false,
+    isCooldown: false
+}
 
 let helpers = {
     degToRad(deg) {
@@ -56,11 +84,57 @@ let helpers = {
     }
 }
 
-let state = {
-    maxScore: 0,
-    score: 0,
-    isCollision: false,
-    isCooldown: false
+
+async function sendScore() {
+    let regex = /^[a-zA-Z0-9]{2,40}$/g;
+    if(!!input.value && regex.test(input.value)) {
+            try {
+                const docRef = await addDoc(scoresRef, {
+                    score: state.score,
+                    name: input.value.trim()
+                })
+                state.scoreId = docRef.id;
+                input.value = '';
+                input.setAttribute("disabled", "");
+                await updateScoreBoard();
+                inputCtnDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => {
+                    inputCtnDom.style.animation = 'unset';
+                    inputCtnDom.style.opacity = 1;
+                }, 600);
+            } catch(e) {
+                console.log('error', e);
+            }
+    }
+}
+
+async function receiveScore() {
+    let data =[];
+    const q = query(scoresRef, orderBy('score', 'desc'), limit(10));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+        data.push({...doc.data(), id: doc.id});
+    });
+    return data;
+}
+
+async function updateScoreBoard() {
+    let scoreData = await receiveScore();
+    if(scoreData && scoreData.length) {
+        let html = '';
+        scoreData.forEach((item, i)=>{
+            let htmlScore = `
+                <div class="player_stats">
+                    <div class="rank">${++i}</div>
+                    <div class="name">${item.name}</div>
+                    <div class="score">${item.score}</div>
+                </div>
+            `;
+            html += htmlScore;
+        });
+        scoreBoardDom.innerHTML = html;
+        goScoreDom.innerText = state.score;
+    }
 }
 
 let scene = {
@@ -79,6 +153,7 @@ let scene = {
             let size = helpers.random(2,8);
             starList.push(new Star(pos, size,randVel));
         }
+        Input.listen();
     },
     game() {
         this.setCurrent('game');
@@ -94,17 +169,21 @@ let scene = {
         }, 800)
         heartManager();
     },
-    gameOver() {
+    async gameOver() {
         this.setCurrent('gameover');
-        if(state.score > state.maxScore) {
-            state.maxScore = state.score;
+        let scoreData = await receiveScore();
+        if(scoreData) {
+            if(scoreData.length < 10) {
+                inputCtnDom.style.visibility = 'visible';
+            } else if(state.score > scoreData[scoreData.length-1].score){
+                inputCtnDom.style.visibility = 'visible';
+            }
         }
         asteroidList = [];
         ship = null;
         explosionList = []
         guiDom.style.animation = 'fadeOut 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
-        // goMaxScoreDom.innerText =state.maxScore;
-        goScoreDom.innerText = state.score;
+        updateScoreBoard();
         setTimeout(() => {
             guiDom.style.display = 'none';
             gameOverDom.style.display = 'flex';
@@ -562,7 +641,6 @@ class Ship {
         }
         let x = helpers.precise(Math.cos(this.angle),2);
         let y = helpers.precise(Math.sin(this.angle),2);
-
         if (Input.up) {
             this.applyForce(new Vec(-x, -y));
             create({
@@ -684,7 +762,7 @@ function loop() {
     garbageCollector();
     scoreManager();
     // log();
-    gui()
+    ui()
 }
 
 function init() {
@@ -798,7 +876,7 @@ function create(args) {
             }
             break;
         case 'explosion':
-            for (let i = 0; i < helpers.random(20,30); i++) {
+            for (let i = 0; i < ~~(helpers.random(10,20)); i++) {
                 let {
                     x,
                     y
@@ -818,38 +896,28 @@ function create(args) {
             break;
     }
 }
-function log() {
-    let msg = `ParticleList Length ${particleList.length}
-    ExplosionList Length ${explosionList.length}
-    starList Length ${starList.length}
-    AsteroidList Length ${asteroidList.length}
-    damageNumList Length ${damageNumList.length}
-    BulletList Length ${bulletList.length}
-    Hearts ${ship?ship.heart:'wait'}
-    current scene ${scene.current}
-    state.isCooldown ${state.isCooldown}
-    state.isCollision ${state.isCollision}
 
-
-    `
-    logger.innerText = msg;
-}
-
-function gui() {
+function ui() {
     if(scene.current === 'game') {
         let style = `rotate(${helpers.radToDeg(ship.angle)-90})`;
         angleDom.setAttribute('transform', style);
     }
 }
-// replayDom.addEventListener('click', () => { // Replay Button
-//     gameOverDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
-//     setTimeout(()=>{
-//         scene.game();
-//         scene.setCurrent('game');
-//         gameOverDom.style.display = 'none';
-//     },600)
-// })
-buttonDom.addEventListener('click', () => { // Play Button
+replayDom.addEventListener('click', (e) => { // Replay Button
+    e.preventDefault();
+    state.score = 0;
+    state.scoreId = '';
+    input.removeAttribute('disabled');
+    gameOverDom.style.animation = 'fadeOut 500ms forwards cubic-bezier(0.4, 0, 0.2, 1)';
+    setTimeout(()=>{
+        scene.game();
+        scene.setCurrent('game');
+        gameOverDom.style.display = 'none';
+        inputCtnDom.style.visibility = 'visible';
+    },600)
+})
+buttonDom.addEventListener('click', (e) => { // Play Button
+    e.preventDefault();
     lobbyDom.style.animation = 'fadeOut 1s forwards cubic-bezier(0.4, 0, 0.2, 1)';
     setTimeout(()=> { 
         scene.game();
@@ -861,3 +929,7 @@ buttonDom.addEventListener('click', () => { // Play Button
 init();
 
 
+submit.addEventListener('click', (e) => {
+    e.preventDefault();
+    sendScore();
+})

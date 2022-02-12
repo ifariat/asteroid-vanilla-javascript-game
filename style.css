@@ -423,6 +423,7 @@ canvas {
     height: 30%;
     width: 100%;
     display: flex;
+    visibility: hidden;
 }
 
 .bottom_right div {

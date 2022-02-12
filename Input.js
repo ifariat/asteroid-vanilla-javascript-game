@@ -8,22 +8,24 @@ let input = {
         addEventListener(
             "keydown",
             e => {
-                switch (e.key.toLowerCase()) {
-                    case "a":
-                        this.left = true;
-                        break;
-                    case "d":
-                        this.right = true;
-                        break;
-                    case "w":
-                        this.up = true;
-                        break;
-                    case "s":
-                        this.down = true;
-                        break;
-                    case " ":
-                        this.space = true;
-                        break;
+                if(e.key) {
+                    switch (e.key.toLowerCase()) {
+                        case "arrowleft":
+                            this.left = true;
+                            break;
+                        case "arrowright":
+                            this.right = true;
+                            break;
+                        case "arrowup":
+                            this.up = true;
+                            break;
+                        case "arrowdown":
+                            this.down = true;
+                            break;
+                        case " ":
+                            this.space = true;
+                            break;
+                    }
                 }
             },
             false
@@ -31,22 +33,24 @@ let input = {
         addEventListener(
             "keyup",
             e => {
-                switch (e.key.toLowerCase()) {
-                    case "a":
-                        this.left = false;
-                        break;
-                    case "d":
-                        this.right = false;
-                        break;
-                    case "w":
-                        this.up = false;
-                        break;
-                    case "s":
-                        this.down = false;
-                        break;
-                    case " ":
-                        this.space = false;
-                        break;
+                if(e.key) {
+                    switch (e.key.toLowerCase()) {
+                        case "arrowleft":
+                            this.left = false;
+                            break;
+                        case "arrowright":
+                            this.right = false;
+                            break;
+                        case "arrowup":
+                            this.up = false;
+                            break;
+                        case "arrowdown":
+                            this.down = false;
+                            break;
+                        case " ":
+                            this.space = false;
+                            break;
+                    }
                 }
             },
             false

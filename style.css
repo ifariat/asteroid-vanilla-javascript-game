@@ -364,7 +364,7 @@ canvas {
 
 #button_replay:hover {
     cursor: pointer;
-    background: linear-gradient( 45deg, ddd, var(--color-orange));
+    background: linear-gradient( 45deg, var(--color-dark-pink), var(--color-orange));
     border: none;
     border-radius: 40%;
     transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);

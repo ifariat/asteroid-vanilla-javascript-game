@@ -7,13 +7,13 @@ import { getFirestore, collection, addDoc, query, getDocs, limit, orderBy } from
 
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA5gVG8CgisG1DGJLc71f7pwTgHU-3olWw",
-    authDomain: "asteroid-81b8f.firebaseapp.com",
-    projectId: "asteroid-81b8f",
-    storageBucket: "asteroid-81b8f.appspot.com",
-    messagingSenderId: "707781372972",
-    appId: "1:707781372972:web:026930676dcbe451503589",
-    measurementId: "G-8K2BXK3GSW"
+    apiKey: "",
+    authDomain: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: "",
+    measurementId: ""
 };
 
 const CTX = document.querySelector('#game').getContext('2d'),
